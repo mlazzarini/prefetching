@@ -83,6 +83,8 @@ int main(int argc, char* argv[]) {
     }
 
     initReq();
+    initCache();
+    
     pthread_create(&server_t, NULL, proxy, NULL);
     for (i = 0; i < MAXNUMTHREADWORKING; i++) {
         int *param = malloc(sizeof (int));
@@ -185,6 +187,8 @@ void *requestDispatcher(void *param) {
                     }
                 }
             }
+        } else {
+            printf("RequestDispatcher[%d]: Ho trovato la risorsa %s nella cache:\n+++++++++++++++++++++++++++++++++++++++++\n%s\n+++++++++++++++++++++++++++++++++++++++++\n",i,req->dir,resp->block);
         }
         
         /* Rispondo solo se la request è di tipo 0 */
