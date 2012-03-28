@@ -1,0 +1,10 @@
+- Gestire il tempo
++ PArsare le risposte
+- Fare altre cose
++ Drogarsi
+- Gestire errori (404 ecc...)
+- Mutex sulla cache
+
+Siamo arrivati l seguente punto: Stiamo implementando la cache nella funzione 
+insertResource() in Cache.c... bisogna ancora cipollare le REF+IDX e poi mettere
+i cntrolli sul tipo di richiesta nel dispatcher (se == 0 ecc... sesso sborro spacca)
