@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>Cache.h</itemPath>
+      <itemPath>Consts.h</itemPath>
+      <itemPath>Dbg.h</itemPath>
+      <itemPath>IOUtil.h</itemPath>
+      <itemPath>Parser.h</itemPath>
+      <itemPath>RequestList.h</itemPath>
+      <itemPath>Util.h</itemPath>
+      <itemPath>list.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+      <itemPath>1.mhtml</itemPath>
+      <itemPath>1000.mhtml</itemPath>
+      <itemPath>2.mhtml</itemPath>
+      <itemPath>2000.mhtml</itemPath>
+      <itemPath>3.mhtml</itemPath>
+      <itemPath>4.mhtml</itemPath>
+      <itemPath>4000.mhtml</itemPath>
+      <itemPath>Bello.mhtml</itemPath>
+      <itemPath>Davoli.mhtml</itemPath>
+      <itemPath>Mondo.mhtml</itemPath>
+      <itemPath>Reti.mhtml</itemPath>
+      <itemPath>Vuoto.mhtml</itemPath>
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>Cache.c</itemPath>
+      <itemPath>Client.c</itemPath>
+      <itemPath>Dbg.c</itemPath>
+      <itemPath>IOUtil.c</itemPath>
+      <itemPath>Parser.c</itemPath>
+      <itemPath>Proxy.c</itemPath>
+      <itemPath>RequestList.c</itemPath>
+      <itemPath>Server.c</itemPath>
+      <itemPath>TODO</itemPath>
+      <itemPath>Util.c</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <linkerTool>
+          <output>Proxy.exe</output>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>default</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
