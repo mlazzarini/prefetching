@@ -4,22 +4,28 @@
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
-#include "Cache.h"
 #include "RequestList.h"
 #include "Parser.h"
 
+//http://lia.deis.unibo.it/Courses/sola0708-auto/materiale/10.thead%20linux%20(parte%202).pdf
+
 struct list_head server_list = LIST_HEAD_INIT(server_list);
 pthread_mutex_t insert_mutex, server_mutex;
+pthread_cond_t cond;
+BOOL modifyList = 0;
  
 void initCache() {
     pthread_mutex_init(&insert_mutex, NULL);
     pthread_mutex_init(&server_mutex, NULL);
+    pthread_cond_init(cond,NULL);
 }
 
 server_elem *insertServer(char *name) { 
     server_elem *s;
     
+/*
     pthread_mutex_lock(&server_mutex);
+*/
     
     /*controlla che il server non sia gia presente nella lista dei server*/
     list_for_each_entry(s, &server_list, next, server_elem) {
@@ -42,7 +48,9 @@ server_elem *insertServer(char *name) {
         return s;
     }
     
+/*
     pthread_mutex_unlock(&server_mutex);
+*/
     
     return NULL;
 }
@@ -60,6 +68,9 @@ response *getResource(request *r) {
     insertServer(s);
     
     pthread_mutex_lock(&insert_mutex);
+    if(modifyList) {
+        pthread_cond_wait(cond,&insert_mutex);
+    }
     pthread_mutex_unlock(&insert_mutex);
     
     /* Scorro la lista dei server in cerca di quello verso cui è indirizzata la
@@ -103,7 +114,9 @@ int insertResource(server_elem *server, response* r) {
         i++;
     }
     
+/*
     pthread_mutex_lock(&insert_mutex);
+*/
     
     if((e = malloc(sizeof(resource_elem))) != (resource_elem *)-1) {
         e->response = r;
@@ -112,7 +125,9 @@ int insertResource(server_elem *server, response* r) {
         return 0;
     }
      
+/*
     pthread_mutex_unlock(&insert_mutex); 
+*/
     
     return -1;
 }
