@@ -103,13 +103,17 @@ int insertResource(server_elem *server, response* r) {
         i++;
     }
     
+    pthread_mutex_lock(&insert_mutex);
     
     if((e = malloc(sizeof(resource_elem))) != (resource_elem *)-1) {
         e->response = r;
         list_add_tail(&e->next, &server->resources);
         (void)time(&e->startTime); 
         return 0;
-    } 
+    }
+     
+    pthread_mutex_unlock(&insert_mutex); 
+    
     return -1;
 }
 
