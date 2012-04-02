@@ -37,6 +37,13 @@ int insertReq(request *req) {
 }
 
 request *popReq() {
+    request_elem *elem;
+    printf("Adesso tu brutto stronzo stampi la lista delle richieste  dè\n");
+    list_for_each_entry(elem, &request_list, next, request_elem) {
+        printf("+++++ %s",stringRequest(elem->req));
+    }
+    printf("Boia dè\n");
+    
     request *ret;
     if(n_req == 0)
         pthread_mutex_lock(&empty_mutex);

@@ -11,22 +11,21 @@
 /*http://lia.deis.unibo.it/Courses/sola0708-auto/materiale/10.thead%20linux%20(parte%202).pdf*/
 
 struct list_head server_list = LIST_HEAD_INIT(server_list);
-pthread_mutex_t insert_mutex, server_mutex;
-pthread_cond_t cond;
-BOOL modifyList = 0;
+pthread_mutex_t insert_mutex, get_mutex, server_mutex;
+pthread_cond_t readCond, writeCond;
+BOOL listWrite = 0;
+int listRead = 0;
  
 void initCache() {
     pthread_mutex_init(&insert_mutex, NULL);
     pthread_mutex_init(&server_mutex, NULL);
-    pthread_cond_init(&cond,NULL);
+    pthread_mutex_init(&get_mutex, NULL);
+    /*pthread_cond_init(&readCond,NULL);*/
 }
 
 server_elem *insertServer(char *name) { 
     server_elem *s;
-    
-/*
     pthread_mutex_lock(&server_mutex);
-*/
     
     /*controlla che il server non sia gia presente nella lista dei server*/
     list_for_each_entry(s, &server_list, next, server_elem) {
@@ -37,6 +36,7 @@ server_elem *insertServer(char *name) {
         if(!strcmp(s->name, name)) {
             list_del(&s->next);
             list_add(&s->next, &server_list);
+            pthread_mutex_unlock(&server_mutex);
             return s;
         }
     }
@@ -46,12 +46,11 @@ server_elem *insertServer(char *name) {
         strcpy(s->name, name);
         INIT_LIST_HEAD(&s->resources);
         list_add(&s->next, &server_list);
+        pthread_mutex_unlock(&server_mutex);
         return s;
     }
     
-/*
     pthread_mutex_unlock(&server_mutex);
-*/
     
     return NULL;
 }
@@ -69,10 +68,8 @@ response *getResource(request *r) {
     insertServer(s);
     
     pthread_mutex_lock(&insert_mutex);
-    if(modifyList) {
-        pthread_cond_wait(&cond,&insert_mutex);
-    }
-    pthread_mutex_unlock(&insert_mutex);
+    
+    listRead++;
     
     /* Scorro la lista dei server in cerca di quello verso cui è indirizzata la
        richiesta*/
@@ -83,11 +80,17 @@ response *getResource(request *r) {
                (ch = sc) in tal caso la restituisco*/
             list_for_each_entry(re,&se->resources,next,resource_elem) {
                 if(!strcmp(r->dir,re->response->dir)) {
+                    pthread_mutex_unlock(&insert_mutex);
                     return re->response;
                 }
             }
         }
     }
+    
+
+    listRead--;
+    pthread_mutex_unlock(&insert_mutex);
+
     return NULL;
 }
 
@@ -110,26 +113,27 @@ int insertResource(server_elem *server, response* r) {
         v->prefetch = 1;
         /* metto la richiesta nella lista delle richieste se non è gia presente 
            in chache*/
-        if(getResource(v) == NULL)
+        if(getResource(v) == NULL) {
             insertReq(v);
+            printf("Cache: Ho inserito la richiesta: %s\n",stringRequest(v));
+        }
         i++;
     }
     
-/*
     pthread_mutex_lock(&insert_mutex);
-*/
+    
+    listWrite = TRUE;
     
     if((e = malloc(sizeof(resource_elem))) != (resource_elem *)-1) {
         e->response = r;
         list_add_tail(&e->next, &server->resources);
-        (void)time(&e->startTime); 
+        (void)time(&e->startTime);
+        pthread_mutex_unlock(&insert_mutex);
         return 0;
     }
      
-/*
-    pthread_mutex_unlock(&insert_mutex); 
-*/
     
+    pthread_mutex_unlock(&insert_mutex);
     return -1;
 }
 
