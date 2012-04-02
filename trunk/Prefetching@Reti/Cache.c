@@ -8,7 +8,7 @@
 #include "Parser.h"
 #include "Cache.h"
 
-//http://lia.deis.unibo.it/Courses/sola0708-auto/materiale/10.thead%20linux%20(parte%202).pdf
+/*http://lia.deis.unibo.it/Courses/sola0708-auto/materiale/10.thead%20linux%20(parte%202).pdf*/
 
 struct list_head server_list = LIST_HEAD_INIT(server_list);
 pthread_mutex_t insert_mutex, server_mutex;
@@ -18,7 +18,7 @@ BOOL modifyList = 0;
 void initCache() {
     pthread_mutex_init(&insert_mutex, NULL);
     pthread_mutex_init(&server_mutex, NULL);
-    pthread_cond_init(cond,NULL);
+    pthread_cond_init(&cond,NULL);
 }
 
 server_elem *insertServer(char *name) { 
@@ -70,7 +70,7 @@ response *getResource(request *r) {
     
     pthread_mutex_lock(&insert_mutex);
     if(modifyList) {
-        pthread_cond_wait(cond,&insert_mutex);
+        pthread_cond_wait(&cond,&insert_mutex);
     }
     pthread_mutex_unlock(&insert_mutex);
     
