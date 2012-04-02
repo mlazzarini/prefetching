@@ -228,6 +228,6 @@ void handleSigTerm(int n) {
 }
 
 void handleSegFault(int n) {
-    printf("è.é\n\n");
+    printf("è.é\n");
     fflush(stdout);
 }
