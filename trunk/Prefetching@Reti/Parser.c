@@ -33,11 +33,8 @@ int getPort(char* req) {
     return atoi(port);
 }
 
-/* Funzione request_parse, prende in input una stringa (la req)
- dichiaro come stringa "GET mhttp://" e come stringa res, il risultato
- della my_strstr, dichiaro come int, il primo intero, ovvero il primo numero
- dell'indirizzo IP con l'atoi che parte dall'indirizzo di res+la lunghezza di
- httpreq0.*/
+/* prende in input una stringa (la req) e la parsa riempiendo i campi della struttura request r
+ * passata per riferimento come parametro della funzione*/
 BOOL parseRequest(char *req, request *r) {
     int lenreq = strlen(req);
     int res = 0;
@@ -196,16 +193,13 @@ response *parseResponse(char *resp_buf) {
     
     printf("parseResponse buf: %s\n",resp_buf);
     
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < 3; i++){
         num[i] = resp_buf[i];
-    
-    num[3] = "\0";
+    }
+    num[3] = '\0';
 
     data = malloc(MAXLENDATA * sizeof (char));
     
-    printf("parseResponse numS: *%s*\n",num);
-    printf("parseResponse numN: *%d*\n",atoi(num));
-
     switch (atoi(num)) {
         case 200:
             i = 0;
