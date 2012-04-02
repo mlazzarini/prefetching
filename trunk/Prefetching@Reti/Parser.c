@@ -188,16 +188,23 @@ void parseRef(char *res, char refs[MAXNUMREF+1][MAXLENPATH], char idxRefs[MAXNUM
  * ritorna NULL e stampa il tipo di errore */
 response *parseResponse(char *resp_buf) {
     response *ret = malloc(sizeof (response));
-    char num[3];
+    char num[4];
     char len[4];
     char exp[5];
     char *s, *data;
     int i = 0;
-
+    
+    printf("parseResponse buf: %s\n",resp_buf);
+    
     for (i = 0; i < 3; i++)
         num[i] = resp_buf[i];
+    
+    num[3] = "\0";
 
     data = malloc(MAXLENDATA * sizeof (char));
+    
+    printf("parseResponse numS: *%s*\n",num);
+    printf("parseResponse numN: *%d*\n",atoi(num));
 
     switch (atoi(num)) {
         case 200:
