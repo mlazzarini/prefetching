@@ -9,8 +9,8 @@
 #define	CACHE_H
 
 #include <time.h>
-#include "list.h"
 #include "Consts.h"
+#include "list.h"
 
 typedef struct resp_s {
         int expire;

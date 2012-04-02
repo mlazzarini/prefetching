@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include "RequestList.h"
 #include "Parser.h"
+#include "Cache.h"
 
 //http://lia.deis.unibo.it/Courses/sola0708-auto/materiale/10.thead%20linux%20(parte%202).pdf
 
