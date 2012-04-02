@@ -23,6 +23,7 @@
 void *proxy(void *param);
 void *requestDispatcher(void* param);
 void handleSigTerm(int n);
+void handleSegFault(int n);
 
 pthread_t server_t;
 pthread_t dispatchers_t[MAXNUMTHREADWORKING];
@@ -50,30 +51,30 @@ struct sockaddr_in server_sk[MAXNUMTHREADWORKING];
 int main(int argc, char* argv[]) {
     int i;
 
-/*
-    request r;
-    response *rr;
-    r.client_fd = 1;
-    strcpy(r.dir, "sono/qui");
-    strcpy(r.ip, "123");
-    r.port = 23;
-    strcpy(r.protocol, "mhttp");
-    strcpy(r.type, "lsd");
-    server_elem *serv_elem = insertServer("123:23");
-    rr = getResource(&r);
-    if (rr == NULL)
-        printf("StRRonzo\n");
+    /*
+        request r;
+        response *rr;
+        r.client_fd = 1;
+        strcpy(r.dir, "sono/qui");
+        strcpy(r.ip, "123");
+        r.port = 23;
+        strcpy(r.protocol, "mhttp");
+        strcpy(r.type, "lsd");
+        server_elem *serv_elem = insertServer("123:23");
+        rr = getResource(&r);
+        if (rr == NULL)
+            printf("StRRonzo\n");
 
-    rr = malloc(sizeof (response));
-    strcpy(rr->block, "Ciao stronzo");
-    strcpy(rr->dir, "sono/qui");
-    rr->expire = 7;
+        rr = malloc(sizeof (response));
+        strcpy(rr->block, "Ciao stronzo");
+        strcpy(rr->dir, "sono/qui");
+        rr->expire = 7;
 
-    insertResource(serv_elem, rr);
+        insertResource(serv_elem, rr);
 
-    response *RR = getResource(&r);
-    printf("%d\n", RR->expire);
-*/
+        response *RR = getResource(&r);
+        printf("%d\n", RR->expire);
+     */
 
     /* Registro il segnale che mi uccide tutti i thread quando viene premuto ctrl+c 
        per evitare di lasciare connessioni aperte*/
@@ -82,9 +83,14 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    if (signal(SIGSEGV, handleSegFault) == SIG_ERR) {
+        perror("Errore gestore SIGSEGV\n");
+        exit(1);
+    }
+
     initReq();
     initCache();
-    
+
     pthread_create(&server_t, NULL, proxy, NULL);
     for (i = 0; i < MAXNUMTHREADWORKING; i++) {
         int *param = malloc(sizeof (int));
@@ -135,6 +141,7 @@ void *proxy(void *param) {
                 /* La richiesta arriva dal client il quale esige una risposta */
                 req.prefetch = 0;
                 insertReq(&req);
+                printf("Proxy: Ho inserito la richiesta: %s\n", stringRequest(&req));
             }
         }
     }
@@ -157,46 +164,46 @@ void *requestDispatcher(void *param) {
             server_sk[i].sin_port = htons(req->port);
             server_sk[i].sin_family = AF_INET;
             req_buf = stringRequest(req);
-            printf("RequestDispatcher[%d]: Tento di soddisfare la richiesta:%s\n",i, req_buf);
+            printf("RequestDispatcher[%d]: Tento di soddisfare la richiesta:%s\n", i, req_buf);
 
             while (TRUE) {
                 dispatcher2server_fd[i] = socket(AF_INET, SOCK_STREAM, 0);
                 setSockReuseAddr(dispatcher2server_fd[i]);
 
                 if (connect(dispatcher2server_fd[i], (struct sockaddr *) &server_sk[i], sizeof (struct sockaddr_in)) == -1) {
-                    fprintf(stderr, "RequestDispatcher[%d]: connect() error: %s\n",i, strerror(errno));
+                    fprintf(stderr, "RequestDispatcher[%d]: connect() error: %s\n", i, strerror(errno));
                 } else {
-                    printf("RequestDispatcher[%d]: Sono connesso al server\n",i);
+                    printf("RequestDispatcher[%d]: Sono connesso al server\n", i);
                     writen(dispatcher2server_fd[i], req_buf, strlen(req_buf));
-                    printf("RequestDispatcher[%d]: Ho inviato al server la richiesta: %s di tipo:%d\n",i, req_buf,req->prefetch);
+                    printf("RequestDispatcher[%d]: Ho inviato al server la richiesta: %s di tipo:%d\n", i, req_buf, req->prefetch);
                     s = recvn(dispatcher2server_fd[i], resp_buf);
-                    printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n",i, s, resp_buf);
+                    printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n", i, s, resp_buf);
 
                     if (s != -1) {
                         /* Mi devo ricavare la struttura che mi permette di associare
                            la risorsa a un server */
                         server_elem *serv = insertServer(getServer(req));
                         close(dispatcher2server_fd[i]);
-                        printf("RequestDispatcher[%d]: Chiudo la connessione con il server\n",i);
+                        printf("RequestDispatcher[%d]: Chiudo la connessione con il server\n", i);
                         resp = parseResponse(resp_buf);
                         strcpy(resp->dir, req->dir);
-                        insertResource(serv,resp);
+                        insertResource(serv, resp);
                         break;
                     } else {
-                        fprintf(stderr, "RequestDispatcher[%d]: Errore: %s\n",i, strerror(errno));
+                        fprintf(stderr, "RequestDispatcher[%d]: Errore: %s\n", i, strerror(errno));
                     }
                 }
             }
         } else {
-            printf("RequestDispatcher[%d]: Ho trovato la risorsa %s nella cache:\n+++++++++++++++++++++++++++++++++++++++++\n%s\n+++++++++++++++++++++++++++++++++++++++++\n",i,req->dir,resp->block);
+            printf("RequestDispatcher[%d]: Ho trovato la risorsa %s nella cache:\n+++++++++++++++++++++++++++++++++++++++++\n%s\n+++++++++++++++++++++++++++++++++++++++++\n", i, req->dir, resp->block);
         }
-        
+
         /* Rispondo solo se la request è di tipo 0 */
-        if(req->prefetch == 0) {
+        if (req->prefetch == 0) {
             send(req->client_fd, resp_buf, strlen(resp_buf), MSG_NOSIGNAL);
-            printf("RequestDispatcher[%d]: Ho inoltrato la rispota al client: %d\n",i,strlen(resp_buf));
+            printf("RequestDispatcher[%d]: Ho inoltrato la rispota al client: %d\n", i, strlen(resp_buf));
             close(req->client_fd);
-            printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n",i);
+            printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
         }
 
     }
@@ -218,4 +225,9 @@ void handleSigTerm(int n) {
     pthread_kill(server_t, SIGABRT);
     fflush(stdout);
     exit(0);
+}
+
+void handleSegFault(int n) {
+    printf("è.é\n\n");
+    fflush(stdout);
 }
