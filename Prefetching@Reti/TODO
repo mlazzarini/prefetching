@@ -1,7 +1,5 @@
 - Gestire il tempo
 - Gestire errori (404 ecc...)
-- Mutex sulla cache <-- da mettere a posto
-- come mai al client arriva sempre la stessa cosa!?
 - gestire le richieste con IDX
 
 Siamo arrivati l seguente punto: Stiamo implementando la cache nella funzione 

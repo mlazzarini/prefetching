@@ -9,7 +9,7 @@
       <itemPath>Dbg.h</itemPath>
       <itemPath>IOUtil.h</itemPath>
       <itemPath>Parser.h</itemPath>
-      <itemPath>RequestList.h</itemPath>
+      <itemPath>Request.h</itemPath>
       <itemPath>Util.h</itemPath>
       <itemPath>list.h</itemPath>
     </logicalFolder>
@@ -38,7 +38,7 @@
       <itemPath>IOUtil.c</itemPath>
       <itemPath>Parser.c</itemPath>
       <itemPath>Proxy.c</itemPath>
-      <itemPath>RequestList.c</itemPath>
+      <itemPath>Request.c</itemPath>
       <itemPath>Server.c</itemPath>
       <itemPath>TODO</itemPath>
       <itemPath>Util.c</itemPath>

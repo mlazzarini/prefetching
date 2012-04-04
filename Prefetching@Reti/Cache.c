@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
-#include "RequestList.h"
+#include "Request.h"
 #include "Parser.h"
 #include "Cache.h"
 
@@ -77,6 +77,17 @@ response *getResource(request *r) {
             list_for_each_entry(re,&se->resources,next,resource_elem) {
                 printf("&&&&&&&&&  1:%s 2:%s\n",r->dir,re->response->dir);
                 if(!strcmp(r->dir,re->response->dir)) {
+                    time_t current_time;
+                    (void)time(&current_time);
+                    
+                    if(current_time - re->startTime >= re->response->expire) {
+                        printf("La risorsa %s è stata cancellata dalla chache siccome sono passati %d secondi.",r->dir,re->response->expire);
+                        list_del(&re->next);
+                        pthread_mutex_unlock(&insert_mutex);
+                        return NULL;
+                    }
+                        
+                    
                     pthread_mutex_unlock(&insert_mutex);
                     return re->response;
                 }
