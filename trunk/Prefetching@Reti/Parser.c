@@ -126,13 +126,18 @@ char *matchSubstr(char *str, char *sub) {
     return NULL;
 }
 
-/* Parsing della richiesta: estrae da una risposta del server i documenti da 
- * richiedere al server e li salva in refs*/
+/* Parsing del blocco ricevuto, alla ricerca di eventuali REF o IDX+REF:
+ * vengono salvati nei vettori passati in input
+ * Nel caso il parametro idxRef passato sia NULL, vengono cercati solo i REF 
+ * contenuti nel blocco
+ */
 void parseRef(char *res, char refs[MAXNUMREF+1][MAXLENPATH], char idxRefs[MAXNUMREF+1][MAXLENPATH]) {
     int i = 0;
     int k = 0;
     char *s = malloc(MAXLENRESP * sizeof (char));
     strcpy(s, res);
+    
+    printf("-------------------_>>>>>>>>>>>>> STO PARSANDO %s\n\n",res);
     
     while (matchSubstrBool(s, "<REF=")) {
         s = matchSubstr(s, "<REF=");
@@ -151,39 +156,43 @@ void parseRef(char *res, char refs[MAXNUMREF+1][MAXLENPATH], char idxRefs[MAXNUM
    
     refs[k][0] = (int)NULL;
 
-    strcpy(s, res);
-    i = 0;
-    k = 0;
-
-    /* Come si evince dalle specifiche un REF preceduto da un ; è sicuramente un 
-       IDX+REF quindi prendo le risorse in esso contenute e le metto in un'altro
-       array*/
-    while (matchSubstrBool(s, ";REF=")) {
-        printf("--3\n");
-        s = matchSubstr(s, ";REF=");
-        printf("--4\n");
-        while (s[i] != '>') {
-            printf("--5\n");
-            idxRefs[k][i] = s[i];
-            printf("--6\n");
-            i++;
-        }
-        printf("fottiti\n");
-        printf("--IDX+REF:%s\n",refs[k]);
-        k++;
-        s = &s[i];
+    
+    if(idxRefs != NULL) {
+        strcpy(s, res);
         i = 0;
+        k = 0;
+        /* Come si evince dalle specifiche un REF preceduto da un ; è sicuramente un 
+           IDX+REF quindi prendo le risorse in esso contenute e le metto in un'altro
+           array*/
+        while (matchSubstrBool(s, ";REF=")) {
+            printf("--3\n");
+            s = matchSubstr(s, ";REF=");
+            printf("--4\n");
+            while (s[i] != '>') {
+                printf("--5\n");
+                idxRefs[k][i] = s[i];
+                printf("--6\n");
+                i++;
+            }
+            printf("fottiti\n");
+            printf("--IDX+REF:%s\n", refs[k]);
+            k++;
+            s = &s[i];
+            i = 0;
 
-        if (k == MAXNUMREF)
-            break;
+            /* Esco se il numero massimo di ref è stato raggiunto */
+            if (k == MAXNUMREF)
+                break;
+        }
+        idxRefs[k][0] = (int) NULL;
     }
-    idxRefs[k][0] = (int)NULL;
 }
 
 /* Parsing della risposta: estrae da una risposta l'expire e il blocco, dopo aver
  * verificato che il blocco sia lungo LEN bytes. In caso di errore, la funzione 
  * ritorna NULL e stampa il tipo di errore */
 response *parseResponse(char *resp_buf) {
+
     response *ret = malloc(sizeof (response));
     char num[4];
     char len[4];
