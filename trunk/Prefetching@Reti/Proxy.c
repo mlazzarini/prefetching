@@ -49,32 +49,10 @@ struct sockaddr_in server_sk[MAXNUMTHREADWORKING];
 
 /*TODO da mettere ip come argv[1]*/
 int main(int argc, char* argv[]) {
-    int i;
+    /*int i;
+    int k,nc;
+    void *ptr;*/
 
-    /*
-        request r;
-        response *rr;
-        r.client_fd = 1;
-        strcpy(r.dir, "sono/qui");
-        strcpy(r.ip, "123");
-        r.port = 23;
-        strcpy(r.protocol, "mhttp");
-        strcpy(r.type, "lsd");
-        server_elem *serv_elem = insertServer("123:23");
-        rr = getResource(&r);
-        if (rr == NULL)
-            printf("StRRonzo\n");
-
-        rr = malloc(sizeof (response));
-        strcpy(rr->block, "Ciao stronzo");
-        strcpy(rr->dir, "sono/qui");
-        rr->expire = 7;
-
-        insertResource(serv_elem, rr);
-
-        response *RR = getResource(&r);
-        printf("%d\n", RR->expire);
-     */
 
     /* Registro il segnale che mi uccide tutti i thread quando viene premuto ctrl+c 
        per evitare di lasciare connessioni aperte*/
@@ -87,22 +65,50 @@ int main(int argc, char* argv[]) {
         perror("Errore gestore SIGSEGV\n");
         exit(1);
     }
-
     initReq();
     initCache();
-
+    printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 1\n");
     pthread_create(&server_t, NULL, proxy, NULL);
+    /*for (i = 0; i < MAXNUMTHREADWORKING; i++) {
+        int *param = malloc(sizeof (int));
+        (*param) = i;
+        pthread_create(&dispatchers_t[i], NULL, requestDispatcher, (void *) param);
+    }
+    printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 2\n");
+    for (k = 0; k < MAXNUMTHREADWORKING; k++) {
+        int *param2 = malloc(sizeof (int));
+        (*param2) = k;
+        nc = pthread_join(dispatchers_t[k], (void*) &ptr ); 
+        if (nc)    exit (-1); 
+    }
+     printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 3\n");
+    pthread_mutex_destroy(&req_mutex); 
+    pthread_cond_destroy(&empty_cond); 
+    pthread_cond_destroy(&full_cond);
+     printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 4\n");
+    pthread_exit(NULL);
+     printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 5\n");*/
+     pthread_exit(NULL);
+    exit(0);
+}
+
+void *proxy(void *param) {
+   
+    
+    int i,k,nc;
+    void *ptr;
     for (i = 0; i < MAXNUMTHREADWORKING; i++) {
         int *param = malloc(sizeof (int));
         (*param) = i;
         pthread_create(&dispatchers_t[i], NULL, requestDispatcher, (void *) param);
     }
-
-    pthread_exit(NULL);
-    exit(0);
-}
-
-void *proxy(void *param) {
+    
+    
+    
+    
+    
+    
+    
     socklen_t len;
     proxy_fd = socket(AF_INET, SOCK_STREAM, 0);
     setSockReuseAddr(proxy_fd);
@@ -126,7 +132,7 @@ void *proxy(void *param) {
         setSockReuseAddr(client_fd);
         if (client_fd < 0) {
             fprintf(stderr, "accept() error: %d\n", errno);
-        } else {
+        } else { /* se la connect col client è andata a buon fine */
             request req;
             char req_buf[MAXLENREQ];
             int ricevuti;
@@ -140,24 +146,54 @@ void *proxy(void *param) {
                 req.client_fd = client_fd;
                 /* La richiesta arriva dal client il quale esige una risposta */
                 req.prefetch = 0;
+                /* Inserisce la richiesta nella lista delle richieste*/
                 insertReq(&req);
                 printf("Proxy: Ho inserito la richiesta: %s\n", stringRequest(&req));
             }
         }
+/*
+        if(n_req == 0){
+            printf("\n\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbA A A A A A A A A A A A A A A A A ==> Proxy: mi interrompo\n\n");
+            
+            
+            printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 2\n");
+            for (k = 0; k < MAXNUMTHREADWORKING; k++) {
+                int *param2 = malloc(sizeof (int));
+                (*param2) = k;
+                nc = pthread_join(dispatchers_t[k], (void*) &ptr);
+                if (nc) exit(-1);
+            }
+            printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 3\n");
+            pthread_mutex_destroy(&req_mutex);
+            pthread_cond_destroy(&empty_cond);
+            pthread_cond_destroy(&full_cond);
+            printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 4\n");
+            pthread_exit(NULL);
+            printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 5\n");
+            
+            break;
+        }
+*/
     }
+    
 }
 
 void *requestDispatcher(void *param) {
     /* Indice del thread utile per accedere alle sue strutture dati*/
     int i = *((int*) param);
     while (1) {
+        /* Estraggo una richiesta dalla testa della lista delle richieste */
         request *req = popReq();
+        if(req == NULL)
+            fprintf(stderr,"Errore sulla popReq\n");
+        /*Cerca una risorsa nella lista delle risorse del server specificato*/
         response *resp = getResource(req);
         char *req_buf;
         char resp_buf[MAXLENRESP];
         int s;
 
-        if (resp == NULL) {
+        if (resp == NULL) {  /* la getResource non ha trovato la risorsa nella cache */
+            /* quindi mi devo connettere al server */
             memset(&server_sk[i], 0, sizeof (struct sockaddr_in));
             memset(resp_buf, '\0', MAXLENRESP);
             server_sk[i].sin_addr.s_addr = inet_addr(req->ip);
@@ -177,31 +213,33 @@ void *requestDispatcher(void *param) {
                     writen(dispatcher2server_fd[i], req_buf, strlen(req_buf));
                     printf("RequestDispatcher[%d]: Ho inviato al server la richiesta: %s di tipo:%d\n", i, req_buf, req->prefetch);
                     s = recvn(dispatcher2server_fd[i], resp_buf);
-                    printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n", i, s, resp_buf);
+                    /*printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n", i, s, resp_buf);*/
+                    printf("RequestDispatcher[%d]: Ho ricevuto  risposta:%d\n", i, s);
 
                     if (s != -1) {
-                        /* Mi devo ricavare la struttura che mi permette di associare
-                           la risorsa a un server */
-                        server_elem *serv = insertServer(getServer(req));
+                        /* se la receive è andata a buon fine, inserisco in cache quello che ho ricevuto */
+                        server_elem *serv = insertServer(getServer(req)); /*Inserisce un server nella lista dei server cachati*/
                         close(dispatcher2server_fd[i]);
                         printf("RequestDispatcher[%d]: Chiudo la connessione con il server\n", i);
                         resp = parseResponse(resp_buf);
-                        strcpy(resp->dir, req->dir);
+                        /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/
                         insertResource(serv, resp);
                         break;
-                    } else {
+                    } else { /* la receive NON è andata a buon fine */
                         fprintf(stderr, "RequestDispatcher[%d]: Errore: %s\n", i, strerror(errno));
                     }
                 }
-            }
-        } else {
+            } /* fine del while(TRUE) */
+            
+        } else { /* Ho trovato la risorsa nella cache*/
             printf("RequestDispatcher[%d]: Ho trovato la risorsa %s nella cache:\n+++++++++++++++++++++++++++++++++++++++++\n%s\n+++++++++++++++++++++++++++++++++++++++++\n", i, req->dir, resp->block);
         }
 
         /* Rispondo solo se la request è di tipo 0 */
         if (req->prefetch == 0) {
+            printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n",i);
             send(req->client_fd, resp_buf, strlen(resp_buf), MSG_NOSIGNAL);
-            printf("RequestDispatcher[%d]: Ho inoltrato la rispota al client: %d\n", i, strlen(resp_buf));
+            printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client: %d\n", i, strlen(resp_buf));
             close(req->client_fd);
             printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
         }

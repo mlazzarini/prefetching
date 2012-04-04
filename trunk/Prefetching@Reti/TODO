@@ -1,11 +1,8 @@
 - Gestire il tempo
-+ PArsare le risposte
-- Fare altre cose
-+ Drogarsi
 - Gestire errori (404 ecc...)
-- Mutex sulla cache
-
-mi puzza l'ano
+- Mutex sulla cache <-- da mettere a posto
+- come mai al client arriva sempre la stessa cosa!?
+- gestire le richieste con IDX
 
 Siamo arrivati l seguente punto: Stiamo implementando la cache nella funzione 
 insertResource() in Cache.c... bisogna ancora cipollare le REF+IDX e poi mettere
