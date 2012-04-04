@@ -13,8 +13,6 @@
 struct list_head server_list = LIST_HEAD_INIT(server_list);
 pthread_mutex_t insert_mutex, get_mutex, server_mutex;
 pthread_cond_t readCond, writeCond;
-BOOL listWrite = 0;
-int listRead = 0;
  
 void initCache() {
     pthread_mutex_init(&insert_mutex, NULL);
@@ -69,8 +67,6 @@ response *getResource(request *r) {
     
     pthread_mutex_lock(&insert_mutex);
     
-    listRead++;
-    
     /* Scorro la lista dei server in cerca di quello verso cui è indirizzata la
        richiesta*/
     list_for_each_entry(se,&server_list,next,server_elem) {
@@ -79,6 +75,7 @@ response *getResource(request *r) {
             /* Trovato il server cerco se la risorsa richiesta è gia stata cachata
                (ch = sc) in tal caso la restituisco*/
             list_for_each_entry(re,&se->resources,next,resource_elem) {
+                printf("&&&&&&&&&  1:%s 2:%s\n",r->dir,re->response->dir);
                 if(!strcmp(r->dir,re->response->dir)) {
                     pthread_mutex_unlock(&insert_mutex);
                     return re->response;
@@ -87,8 +84,6 @@ response *getResource(request *r) {
         }
     }
     
-
-    listRead--;
     pthread_mutex_unlock(&insert_mutex);
 
     return NULL;
@@ -121,7 +116,6 @@ int insertResource(server_elem *server, response* r) {
     }
     pthread_mutex_lock(&insert_mutex);
     
-    listWrite = TRUE;
     if((e = malloc(sizeof(resource_elem))) != (resource_elem *)-1) {
         e->response = r;
         list_add_tail(&e->next, &server->resources);
