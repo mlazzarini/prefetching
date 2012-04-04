@@ -8,8 +8,22 @@
 #ifndef REQUESTLIST_H
 #define	REQUESTLIST_H
 
+#include <pthread.h>
 #include "Consts.h"
 #include "list.h"
+
+
+/**********/
+/*pthread_mutex_t empty_mutex;*/
+pthread_cond_t empty_cond;
+
+/*pthread_mutex_t full_mutex;*/
+pthread_cond_t full_cond;
+
+int n_req;
+/***********/
+
+pthread_mutex_t req_mutex;
 
 typedef struct request_s {
     int  client_fd;
@@ -41,12 +55,14 @@ void initReq();
 
 /*
  * Inserisce una richiesta in coda alla lista delle richieste
+ * Se la lista è piena (n_req=MAXREQ), la insert è bloccante
  * return: 1 se l'operazione va a buon fine, 0 altriemnti
  */
 int insertReq(request *req);
 
 /*
- * Estrae una richiesta dalla testa della lista delle richieste
+ * Estrae una richiesta dalla testa della lista delle richieste.
+ * Se la lista è vuota, la pop è bloccante
  * return: la richiesta oppure NULL se l'operazione fallisce
  */
 request *popReq();
