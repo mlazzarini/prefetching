@@ -191,7 +191,7 @@ void *requestDispatcher(void *param) {
                         strcpy(resp->dir, req->dir);
                         printf("RequestDispatcher[%d]: L'expire time della risposta %s è %d\n",i,resp->dir,resp->expire);
                         /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/
-                        insertResource(serv, resp);
+                        insertResource(serv, resp, req->prefetch);
                         break;
                     } else { /* la receive NON è andata a buon fine */
                         fprintf(stderr, "RequestDispatcher[%d]: Errore: %s\n", i, strerror(errno));
@@ -202,15 +202,15 @@ void *requestDispatcher(void *param) {
         } else { /* Ho trovato la risorsa nella cache*/
             printf("RequestDispatcher[%d]: Ho trovato la risorsa %s nella cache:\n+++++++++++++++++++++++++++++++++++++++++\n%s\n+++++++++++++++++++++++++++++++++++++++++\n", i, req->dir, resp->block);
         }
-
+        
         /* Rispondo solo se la request è di tipo 0 */
         if (req->prefetch == 0) {
             printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n", i);
             send(req->client_fd, resp_buf, strlen(resp_buf), MSG_NOSIGNAL);
-            printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client: %d\n", i, strlen(resp_buf));
+            printf("44444444444444444444444444444444444444444\nRequestDispatcher[%d]: Ho inoltrato la risposta al client: %s\n444444444444444444444444444444444444444444\n", i, resp_buf);
             close(req->client_fd);
             printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
-        }
+        } 
 
     }
 }

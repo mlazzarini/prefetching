@@ -80,6 +80,7 @@ response *getResource(request *r) {
                     time_t current_time;
                     (void)time(&current_time);
                     
+                        /* controllo se la risorsa è scaduta: nel caso, la elimino dalla cache e ritorno NULL */
                     if(current_time - re->startTime >= re->response->expire) {
                         printf("La risorsa %s è stata cancellata dalla chache siccome sono passati %d secondi.",r->dir,re->response->expire);
                         list_del(&re->next);
@@ -100,31 +101,54 @@ response *getResource(request *r) {
     return NULL;
 }
 
-int insertResource(server_elem *server, response* r) {
+int insertResource(server_elem *server, response* r, int prefetch_flag) {
     int i=0;
     resource_elem *e; 
     /* L'elemnto a caso in piu serve per mettere NULL*/
     char ref[MAXNUMREF+1][MAXLENPATH] ;
     char idxRef[MAXNUMREF+1][MAXLENPATH];
     char buf[MAXLENPATH];
-    parseRef(r->block, ref, idxRef);
     
-    /* Scorro l'array delle REF e se non sono gia in cache le metto nella lista
-       delle richieste*/
-    while(ref[i][0] != (int)NULL) {
-        request *v = malloc(sizeof(request));
-        strcpy(buf,ref[i]);
-        parseRequest(buf,v);
-        /* Rihieste di tipo REF*/
-        v->prefetch = 1;
-        /* metto la richiesta nella lista delle richieste se non è gia presente 
-           in chache*/
-        if(getResource(v) == NULL) {
-            insertReq(v);
-            printf("Cache: Ho inserito la richiesta: %s\n",stringRequest(v));
+    if (prefetch_flag == 0 || prefetch_flag == 2) {
+        parseRef(r->block, ref, (prefetch_flag == 0) ? idxRef : NULL );
+
+        /* Scorro l'array delle REF e se non sono gia in cache le metto nella lista
+           delle richieste*/
+        while (ref[i][0] != (int) NULL) {
+            request *v = malloc(sizeof (request));
+            strcpy(buf, ref[i]);
+            parseRequest(buf, v);
+            /* Rihieste di tipo REF*/
+            v->prefetch = 1;
+            /* metto la richiesta nella lista delle richieste se non è gia presente 
+               in chache*/
+            if (getResource(v) == NULL) {
+                insertReq(v);
+                printf("Cache: Ho inserito la richiesta REF: %s\n", stringRequest(v));
+            }
+            i++;
         }
-        i++;
+
+        i = 0;
+        memset(buf, '\0', MAXLENPATH);
+        /* Scorro l'array delle IDX+REF e se non sono gia in cache le metto nella lista
+           delle richieste*/
+        while (idxRef[i][0] != (int) NULL) {
+            request *v = malloc(sizeof (request));
+            strcpy(buf, idxRef[i]);
+            parseRequest(buf, v);
+            /* Rihieste di tipo IDX+REF*/
+            v->prefetch = 2;
+            /* metto la richiesta nella lista delle richieste se non è gia presente 
+               in chache*/
+            if (getResource(v) == NULL) {
+                insertReq(v);
+                printf("Cache: Ho inserito la richiesta IDX: %s\n", stringRequest(v));
+            }
+            i++;
+        }
     }
+    
     pthread_mutex_lock(&insert_mutex);
     
     if((e = malloc(sizeof(resource_elem))) != (resource_elem *)-1) {
