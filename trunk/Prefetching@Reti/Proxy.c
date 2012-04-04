@@ -151,29 +151,6 @@ void *proxy(void *param) {
                 printf("Proxy: Ho inserito la richiesta: %s\n", stringRequest(&req));
             }
         }
-/*
-        if(n_req == 0){
-            printf("\n\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbA A A A A A A A A A A A A A A A A ==> Proxy: mi interrompo\n\n");
-            
-            
-            printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 2\n");
-            for (k = 0; k < MAXNUMTHREADWORKING; k++) {
-                int *param2 = malloc(sizeof (int));
-                (*param2) = k;
-                nc = pthread_join(dispatchers_t[k], (void*) &ptr);
-                if (nc) exit(-1);
-            }
-            printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 3\n");
-            pthread_mutex_destroy(&req_mutex);
-            pthread_cond_destroy(&empty_cond);
-            pthread_cond_destroy(&full_cond);
-            printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 4\n");
-            pthread_exit(NULL);
-            printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 5\n");
-            
-            break;
-        }
-*/
     }
     
 }
@@ -222,6 +199,7 @@ void *requestDispatcher(void *param) {
                         close(dispatcher2server_fd[i]);
                         printf("RequestDispatcher[%d]: Chiudo la connessione con il server\n", i);
                         resp = parseResponse(resp_buf);
+                        strcpy(resp->dir, req->dir);
                         /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/
                         insertResource(serv, resp);
                         break;
@@ -252,12 +230,16 @@ void *requestDispatcher(void *param) {
  */
 void handleSigTerm(int n) {
     int i;
-    printf("\nElimino tutti i thread e chiudo il programma\n");
+    printf("\nElimino tutti i thread e chiudo il Proxy...\n");
     fflush(stdout);
     for (i = 0; i < MAXNUMTHREADWORKING; i++) {
         close(dispatcher2server_fd[i]);
         pthread_kill(dispatchers_t[i], SIGABRT);
     }
+    pthread_mutex_destroy(&req_mutex);
+    pthread_cond_destroy(&empty_cond);
+    pthread_cond_destroy(&full_cond);
+    pthread_exit(NULL);
     close(proxy_fd);
     close(client_fd);
     pthread_kill(server_t, SIGABRT);

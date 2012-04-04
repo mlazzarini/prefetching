@@ -35,20 +35,20 @@ int recvn(int fd, char *buf) {
     int ret, nleft;
     setSockTimeout(fd);
     nleft = MAXLENRESP;
-    
-    while(nleft > 0) {
+
+    while (nleft > 0) {
         do {
             if ((ret = read(fd, buf, MAXLENRESP)) == -1) {
                 fprintf(stderr, "recvn errore %d: %s\n", errno, strerror(errno));
-                if(errno == EAGAIN)
+                if (errno == EAGAIN)
                     return -1;
             }
         } while (ret < 0);
-        
-        if(ret == 0) {
+
+        if (ret == 0) {
             return 0;
-        } 
-        
+        }
+
         nleft -= ret;
         buf += ret;
     }
