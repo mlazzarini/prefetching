@@ -39,9 +39,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/Server.o \
 	${OBJECTDIR}/Cache.o \
 	${OBJECTDIR}/Client.o \
+	${OBJECTDIR}/Request.o \
 	${OBJECTDIR}/Dbg.o \
 	${OBJECTDIR}/Util.o \
-	${OBJECTDIR}/RequestList.o \
 	${OBJECTDIR}/Parser.o
 
 
@@ -94,6 +94,11 @@ ${OBJECTDIR}/Client.o: Client.c
 	${RM} $@.d
 	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/Client.o Client.c
 
+${OBJECTDIR}/Request.o: Request.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/Request.o Request.c
+
 ${OBJECTDIR}/Dbg.o: Dbg.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
@@ -103,11 +108,6 @@ ${OBJECTDIR}/Util.o: Util.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/Util.o Util.c
-
-${OBJECTDIR}/RequestList.o: RequestList.c 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} $@.d
-	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/RequestList.o RequestList.c
 
 ${OBJECTDIR}/Parser.o: Parser.c 
 	${MKDIR} -p ${OBJECTDIR}

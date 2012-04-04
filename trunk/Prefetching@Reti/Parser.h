@@ -9,7 +9,7 @@
 #define	PARSER_H
 
 #include "Consts.h"
-#include "RequestList.h"
+#include "Request.h"
 #include "Cache.h"
 
 /* in queste definizione è compreso lo 0 terminatore della stringa*/

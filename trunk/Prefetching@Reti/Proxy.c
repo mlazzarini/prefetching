@@ -12,7 +12,7 @@
 #include <bits/sigthread.h>
 #include "IOUtil.h"
 #include "Parser.h"
-#include "RequestList.h"
+#include "Request.h"
 #include "Consts.h"
 #include "Util.h"
 #include "Cache.h"
@@ -88,28 +88,20 @@ int main(int argc, char* argv[]) {
      printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 4\n");
     pthread_exit(NULL);
      printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 5\n");*/
-     pthread_exit(NULL);
+    pthread_exit(NULL);
     exit(0);
 }
 
 void *proxy(void *param) {
-   
-    
-    int i,k,nc;
-    void *ptr;
+    socklen_t len;
+    int i;
+
     for (i = 0; i < MAXNUMTHREADWORKING; i++) {
         int *param = malloc(sizeof (int));
         (*param) = i;
         pthread_create(&dispatchers_t[i], NULL, requestDispatcher, (void *) param);
     }
-    
-    
-    
-    
-    
-    
-    
-    socklen_t len;
+
     proxy_fd = socket(AF_INET, SOCK_STREAM, 0);
     setSockReuseAddr(proxy_fd);
 
@@ -152,7 +144,6 @@ void *proxy(void *param) {
             }
         }
     }
-    
 }
 
 void *requestDispatcher(void *param) {
@@ -161,15 +152,13 @@ void *requestDispatcher(void *param) {
     while (1) {
         /* Estraggo una richiesta dalla testa della lista delle richieste */
         request *req = popReq();
-        if(req == NULL)
-            fprintf(stderr,"Errore sulla popReq\n");
         /*Cerca una risorsa nella lista delle risorse del server specificato*/
         response *resp = getResource(req);
         char *req_buf;
         char resp_buf[MAXLENRESP];
         int s;
 
-        if (resp == NULL) {  /* la getResource non ha trovato la risorsa nella cache */
+        if (resp == NULL) { /* la getResource non ha trovato la risorsa nella cache */
             /* quindi mi devo connettere al server */
             memset(&server_sk[i], 0, sizeof (struct sockaddr_in));
             memset(resp_buf, '\0', MAXLENRESP);
@@ -200,6 +189,7 @@ void *requestDispatcher(void *param) {
                         printf("RequestDispatcher[%d]: Chiudo la connessione con il server\n", i);
                         resp = parseResponse(resp_buf);
                         strcpy(resp->dir, req->dir);
+                        printf("RequestDispatcher[%d]: L'expire time della risposta %s è %d\n",i,resp->dir,resp->expire);
                         /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/
                         insertResource(serv, resp);
                         break;
@@ -208,14 +198,14 @@ void *requestDispatcher(void *param) {
                     }
                 }
             } /* fine del while(TRUE) */
-            
+
         } else { /* Ho trovato la risorsa nella cache*/
             printf("RequestDispatcher[%d]: Ho trovato la risorsa %s nella cache:\n+++++++++++++++++++++++++++++++++++++++++\n%s\n+++++++++++++++++++++++++++++++++++++++++\n", i, req->dir, resp->block);
         }
 
         /* Rispondo solo se la request è di tipo 0 */
         if (req->prefetch == 0) {
-            printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n",i);
+            printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n", i);
             send(req->client_fd, resp_buf, strlen(resp_buf), MSG_NOSIGNAL);
             printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client: %d\n", i, strlen(resp_buf));
             close(req->client_fd);
