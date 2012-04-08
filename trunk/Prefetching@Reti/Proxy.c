@@ -149,6 +149,7 @@ void *proxy(void *param) {
 void *requestDispatcher(void *param) {
     /* Indice del thread utile per accedere alle sue strutture dati*/
     int i = *((int*) param);
+    int trovatoNellaCache = 0;
     while (1) {
         /* Estraggo una richiesta dalla testa della lista delle richieste */
         request *req = popReq();
@@ -201,13 +202,19 @@ void *requestDispatcher(void *param) {
 
         } else { /* Ho trovato la risorsa nella cache*/
             printf("RequestDispatcher[%d]: Ho trovato la risorsa %s nella cache:\n+++++++++++++++++++++++++++++++++++++++++\n%s\n+++++++++++++++++++++++++++++++++++++++++\n", i, req->dir, resp->block);
+            trovatoNellaCache = 1;
         }
         
         /* Rispondo solo se la request è di tipo 0 */
         if (req->prefetch == 0) {
             printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n", i);
-            send(req->client_fd, resp_buf, strlen(resp_buf), MSG_NOSIGNAL);
-            printf("44444444444444444444444444444444444444444\nRequestDispatcher[%d]: Ho inoltrato la risposta al client: %s\n444444444444444444444444444444444444444444\n", i, resp_buf);
+            if (trovatoNellaCache){
+                send(req->client_fd, resp->block, strlen(resp->block), MSG_NOSIGNAL);
+                printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i,resp->block);
+            }else{
+                send(req->client_fd, resp_buf, strlen(resp_buf), MSG_NOSIGNAL);
+                printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i, resp_buf);
+            }
             close(req->client_fd);
             printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
         } 
