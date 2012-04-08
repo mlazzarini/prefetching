@@ -228,9 +228,8 @@ response *parseResponse(char *resp_buf) {
                 fprintf(stderr, "Block incomplete\n");
                 return NULL;
             }
-            /*metto lo 0 terminatore nella stringa cazzo!*/
-            data[i] = '\0';
-            strcpy(ret->block, data);
+            
+            strcpy(ret->block,resp_buf);
 
             i = 0;
             s = matchSubstr(resp_buf, "Expire ");
