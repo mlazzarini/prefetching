@@ -188,6 +188,11 @@ void *requestDispatcher(void *param) {
                         close(dispatcher2server_fd[i]);
                         printf("RequestDispatcher[%d]: Chiudo la connessione con il server\n", i);
                         resp = parseResponse(resp_buf);
+                        /* Nel caso in cui la risposta sia NULL (il parser si è accorto di un errore), me la faccio reinviare dal server */
+                        if (resp->retcode ==-1){
+                            printf("\nRequestDispatcher[%d]: E R R O R E \n", i);
+                            continue;
+                        }
                         strcpy(resp->dir, req->dir);
                         printf("RequestDispatcher[%d]: L'expire time della risposta %s è %d\n", i, resp->dir, resp->expire);
                         /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/

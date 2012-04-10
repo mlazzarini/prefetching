@@ -42,13 +42,13 @@ BOOL parseRequest(char *req, request *r) {
     int ip[4];
     /* richiesta completa con GET e \n\n */
     char reqComp[MAXLENREQ];
-    
-    if(!matchSubstrBool(req,"GET")) {
-        sprintf(reqComp,"GET %s\n\n",req);
+
+    if (!matchSubstrBool(req, "GET")) {
+        sprintf(reqComp, "GET %s\n\n", req);
     } else {
-        strcpy(reqComp,req);
+        strcpy(reqComp, req);
     }
-    
+
     sprintf(format, "%%9s %%19[^0-9]%%d.%%d.%%d.%%d:%%d%%%d[^\n]", MAXLENPATH);
 
     if ((res = sscanf(reqComp, format,
@@ -131,14 +131,14 @@ char *matchSubstr(char *str, char *sub) {
  * Nel caso il parametro idxRef passato sia NULL, vengono cercati solo i REF 
  * contenuti nel blocco
  */
-void parseRef(char *res, char refs[MAXNUMREF+1][MAXLENPATH], char idxRefs[MAXNUMREF+1][MAXLENPATH]) {
+void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXNUMREF + 1][MAXLENPATH]) {
     int i = 0;
     int k = 0;
     char *s = malloc(MAXLENRESP * sizeof (char));
     strcpy(s, res);
-    
-    printf("-------------------_>>>>>>>>>>>>> STO PARSANDO %s\n\n",res);
-    
+
+    printf("-------------------_>>>>>>>>>>>>> STO PARSANDO %s\n\n", res);
+
     while (matchSubstrBool(s, "<REF=")) {
         s = matchSubstr(s, "<REF=");
         while (s[i] != '>') {
@@ -153,11 +153,11 @@ void parseRef(char *res, char refs[MAXNUMREF+1][MAXLENPATH], char idxRefs[MAXNUM
         if (k == MAXNUMREF)
             break;
     }
-   
-    refs[k][0] = (int)NULL;
 
-    
-    if(idxRefs != NULL) {
+    refs[k][0] = (int) NULL;
+
+
+    if (idxRefs != NULL) {
         strcpy(s, res);
         i = 0;
         k = 0;
@@ -189,8 +189,8 @@ void parseRef(char *res, char refs[MAXNUMREF+1][MAXLENPATH], char idxRefs[MAXNUM
 }
 
 /* Parsing della risposta: estrae da una risposta l'expire e il blocco, dopo aver
- * verificato che il blocco sia lungo LEN bytes. In caso di errore, la funzione 
- * ritorna NULL e stampa il tipo di errore */
+ * verificato che il blocco sia lungo LEN bytes. In caso di errore (risposta non 
+ * ben formata oppure block incomplete, la funzione ritorna una response con retcode = -1,*/
 response *parseResponse(char *resp_buf) {
 
     response *ret = malloc(sizeof (response));
@@ -199,63 +199,95 @@ response *parseResponse(char *resp_buf) {
     char exp[5];
     char *s, *data;
     int i = 0;
-    
-    printf("parseResponse buf: %s\n",resp_buf);
-    
-    for (i = 0; i < 3; i++){
+
+    printf("parseResponse buf: %s\n", resp_buf);
+
+    for (i = 0; i < 3; i++) {
         num[i] = resp_buf[i];
     }
     num[3] = '\0';
 
     data = malloc(MAXLENDATA * sizeof (char));
-    
-    switch (atoi(num)) {
+
+    ret->retcode = atoi(num);
+    switch (ret->retcode) {
         case 200:
             i = 0;
             s = matchSubstr(resp_buf, "Len ");
+            if (s == NULL) { /* la funzione matchSubstr non ha trovato "Len" nella risposta */
+                ret->retcode = -1;
+                break;
+            }
             while (s[i] != '\n') {
+                if (s[i] == '\0') {
+                    ret->retcode = -1;
+                    break;
+                }
                 len[i] = s[i];
                 i++;
+
             }
 
             i = 0;
             s = matchSubstr(resp_buf, "\n\n");
+            if (s == NULL) { /* la funzione matchSubstr non ha trovato "\n\n" nella risposta */
+                ret->retcode = -1;
+                break;
+            }
             while (i != atoi(len)) {
+                if (s[i] == '\0') {
+                    ret->retcode = -1;
+                    break;
+                }
                 data[i] = s[i];
                 i++;
             }
+
             if (strlen(data) != atoi(len)) {
                 fprintf(stderr, "Block incomplete\n");
-                return NULL;
+                ret->retcode = -1;
+                break;
             }
-            
-            strcpy(ret->block,resp_buf);
+
+            strcpy(ret->block, resp_buf);
 
             i = 0;
             s = matchSubstr(resp_buf, "Expire ");
+            if (s == NULL) { /* la funzione matchSubstr non ha trovato "Expire" nella risposta */
+                ret->retcode = -1;
+                break;
+            }
             while (s[i] != '\n') {
+                if (s[i] == '\0') {
+                    ret->retcode = -1;
+                    break;
+                }
                 exp[i] = s[i];
                 i++;
             }
-            ret->expire = atoi(exp)*1000;
 
-            return ret;
+            ret->expire = atoi(exp);
+
+            break;
 
         case 402:
             fprintf(stderr, "Error 402: unknown error\n");
-            return NULL;
+            break;
         case 403:
             fprintf(stderr, "Error 403: wrong request\n");
-            return NULL;
+            break;
         case 404:
             fprintf(stderr, "Error 404: file not found\n");
-            return NULL;
+            break;
         case 405:
             fprintf(stderr, "Error 405: interval not found\n");
-            return NULL;
+            break;
+        default:
+            fprintf(stderr, "Bad response\n");
+            ret->retcode = -1;
+            break;
     }
-    fprintf(stderr, "Bad response\n");
-    return NULL;
+    return ret;
 }
 
 
