@@ -13,10 +13,11 @@
 #include "list.h"
 
 typedef struct resp_s {
-        int expire;
-        char dir[MAXLENPATH];
-        /* contiene l'intera risposta,cioè tutto quello che arriva dal server (compreso Len, Expire ecc..) */
-        char block[MAXLENRESP]; 
+    int retcode;
+    int expire;
+    char dir[MAXLENPATH];
+    /* contiene l'intera risposta,cioè tutto quello che arriva dal server (compreso Len, Expire ecc..) */
+    char block[MAXLENRESP];
 } response;
 
 typedef struct server_s {
