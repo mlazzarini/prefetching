@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     }
     initReq();
     initCache();
-    printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 1\n");
+    printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 12\n");
     pthread_create(&server_t, NULL, proxy, NULL);
     /*for (i = 0; i < MAXNUMTHREADWORKING; i++) {
         int *param = malloc(sizeof (int));
