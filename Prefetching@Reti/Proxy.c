@@ -30,6 +30,10 @@ pthread_t dispatchers_t[MAXNUMTHREADWORKING];
 
 /***************** Variabili del PROXY ********************/
 
+/* Se non specificate, vengono usate quelle di default (127.0.0.1 e 3307) */
+char *ip_addr;
+int port;
+
 /*indirizzo e porta sul quale il proxy sta in ascolto*/
 struct sockaddr_in proxy_sk;
 /*indirizzo che viene riempito quando si riceve una connessione dal client */
@@ -49,10 +53,11 @@ struct sockaddr_in server_sk[MAXNUMTHREADWORKING];
 
 /*TODO da mettere ip come argv[1]*/
 int main(int argc, char* argv[]) {
-    /*int i;
-    int k,nc;
-    void *ptr;*/
 
+    if(argc-1 == 2){
+        ip_addr = argv[1];
+        port = atoi(argv[2]);
+    }
 
     /* Registro il segnale che mi uccide tutti i thread quando viene premuto ctrl+c 
        per evitare di lasciare connessioni aperte*/

@@ -137,8 +137,6 @@ void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXN
     char *s = malloc(MAXLENRESP * sizeof (char));
     strcpy(s, res);
 
-    printf("-------------------_>>>>>>>>>>>>> STO PARSANDO %s\n\n", res);
-
     while (matchSubstrBool(s, "<REF=")) {
         s = matchSubstr(s, "<REF=");
         while (s[i] != '>') {
