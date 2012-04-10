@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     }
     initReq();
     initCache();
-    printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 12\n");
+    printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 1\n");
     pthread_create(&server_t, NULL, proxy, NULL);
     /*for (i = 0; i < MAXNUMTHREADWORKING; i++) {
         int *param = malloc(sizeof (int));
@@ -149,7 +149,6 @@ void *proxy(void *param) {
 void *requestDispatcher(void *param) {
     /* Indice del thread utile per accedere alle sue strutture dati*/
     int i = *((int*) param);
-    int trovatoNellaCache = 0;
     while (1) {
         /* Estraggo una richiesta dalla testa della lista delle richieste */
         request *req = popReq();
@@ -190,7 +189,7 @@ void *requestDispatcher(void *param) {
                         printf("RequestDispatcher[%d]: Chiudo la connessione con il server\n", i);
                         resp = parseResponse(resp_buf);
                         strcpy(resp->dir, req->dir);
-                        printf("RequestDispatcher[%d]: L'expire time della risposta %s è %d\n",i,resp->dir,resp->expire);
+                        printf("RequestDispatcher[%d]: L'expire time della risposta %s è %d\n", i, resp->dir, resp->expire);
                         /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/
                         insertResource(serv, resp, req->prefetch);
                         break;
@@ -202,22 +201,16 @@ void *requestDispatcher(void *param) {
 
         } else { /* Ho trovato la risorsa nella cache*/
             printf("RequestDispatcher[%d]: Ho trovato la risorsa %s nella cache:\n+++++++++++++++++++++++++++++++++++++++++\n%s\n+++++++++++++++++++++++++++++++++++++++++\n", i, req->dir, resp->block);
-            trovatoNellaCache = 1;
         }
-        
+
         /* Rispondo solo se la request è di tipo 0 */
         if (req->prefetch == 0) {
             printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n", i);
-            if (trovatoNellaCache){
-                send(req->client_fd, resp->block, strlen(resp->block), MSG_NOSIGNAL);
-                printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i,resp->block);
-            }else{
-                send(req->client_fd, resp_buf, strlen(resp_buf), MSG_NOSIGNAL);
-                printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i, resp_buf);
-            }
+            send(req->client_fd, resp->block, strlen(resp->block), MSG_NOSIGNAL);
+            printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i, resp->block);
             close(req->client_fd);
             printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
-        } 
+        }
 
     }
 }
