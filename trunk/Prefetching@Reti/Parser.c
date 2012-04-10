@@ -237,7 +237,7 @@ response *parseResponse(char *resp_buf) {
                 exp[i] = s[i];
                 i++;
             }
-            ret->expire = atoi(exp);
+            ret->expire = atoi(exp)*1000;
 
             return ret;
 

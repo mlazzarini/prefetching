@@ -51,8 +51,8 @@ server_elem *insertServer(char *name);
 response *getResource(request *r);
 
 /* 
- * Inserisce una risorsa nella lista dei server cachati (ch = sci), non controlla
- * che la risorsa che si sta tentando di inserire sia gia presente. Viene inolore
+ * Inserisce una risorsa nella lista dei server cachati, non controlla
+ * che la risorsa che si sta tentando di inserire sia gia presente. Viene inoltre
  * passato il flag che dice di che tipo era la richiesta (see also Request.h)
  * 
  * return 1 se l'inserimento va a buon fine
