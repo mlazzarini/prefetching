@@ -163,17 +163,12 @@ void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXN
            IDX+REF quindi prendo le risorse in esso contenute e le metto in un'altro
            array*/
         while (matchSubstrBool(s, ";REF=")) {
-            printf("--3\n");
             s = matchSubstr(s, ";REF=");
-            printf("--4\n");
             while (s[i] != '>') {
-                printf("--5\n");
                 idxRefs[k][i] = s[i];
-                printf("--6\n");
                 i++;
             }
-            printf("fottiti\n");
-            printf("--IDX+REF:%s\n", refs[k]);
+            /*printf("--IDX+REF:%s\n", refs[k]);*/
             k++;
             s = &s[i];
             i = 0;
@@ -188,7 +183,7 @@ void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXN
 
 /* Parsing della risposta: estrae da una risposta l'expire e il blocco, dopo aver
  * verificato che il blocco sia lungo LEN bytes. In caso di errore (risposta non 
- * ben formata oppure block incomplete, la funzione ritorna una response con retcode = -1,*/
+ * ben formata oppure block incomplete) la funzione ritorna una response con retcode = -1,*/
 response *parseResponse(char *resp_buf) {
 
     response *ret = malloc(sizeof (response));

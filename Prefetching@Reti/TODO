@@ -1,2 +1,11 @@
 - Gestire errori (404 ecc...)
 - nella struttura request c'è roba inutile
+
+
+
+
+nel while 1 del thread proxy la request che andiamo a inserire nella lista delle
+richieste non andrebbe mallocata?? perchè è dichiarata in quel blocco li un po 
+alla cazzo di cane
+
+i file 1000 2000 4000 danno errore di block incomplete: come dobbiamo comportarci?

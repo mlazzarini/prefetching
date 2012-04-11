@@ -61,10 +61,6 @@ static void list_del(struct list_head *entry) {
     __list_del(entry->prev, entry->next);
 }
 
-static int list_is_last(const struct list_head *list, const struct list_head *head) {
-    return list->next == head;
-}
-
 static int list_empty(const struct list_head *head) {
     return head->next == head;
 }
