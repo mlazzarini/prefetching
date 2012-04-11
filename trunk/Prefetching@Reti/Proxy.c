@@ -57,6 +57,11 @@ int main(int argc, char* argv[]) {
     if(argc-1 == 2){
         ip_addr = argv[1];
         port = atoi(argv[2]);
+    }else if (argc-1 > 2){
+        printf("Usage: ./Proxy.exe IP port OR just ./Proxy.exe to use default params");
+    }else{
+        ip_addr = IP_ADDR;
+        port = PORT;
     }
 
     /* Registro il segnale che mi uccide tutti i thread quando viene premuto ctrl+c 
@@ -72,27 +77,7 @@ int main(int argc, char* argv[]) {
     }
     initReq();
     initCache();
-    printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 1\n");
     pthread_create(&server_t, NULL, proxy, NULL);
-    /*for (i = 0; i < MAXNUMTHREADWORKING; i++) {
-        int *param = malloc(sizeof (int));
-        (*param) = i;
-        pthread_create(&dispatchers_t[i], NULL, requestDispatcher, (void *) param);
-    }
-    printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 2\n");
-    for (k = 0; k < MAXNUMTHREADWORKING; k++) {
-        int *param2 = malloc(sizeof (int));
-        (*param2) = k;
-        nc = pthread_join(dispatchers_t[k], (void*) &ptr ); 
-        if (nc)    exit (-1); 
-    }
-     printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 3\n");
-    pthread_mutex_destroy(&req_mutex); 
-    pthread_cond_destroy(&empty_cond); 
-    pthread_cond_destroy(&full_cond);
-     printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 4\n");
-    pthread_exit(NULL);
-     printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 5\n");*/
     pthread_exit(NULL);
     exit(0);
 }
@@ -110,8 +95,8 @@ void *proxy(void *param) {
     proxy_fd = socket(AF_INET, SOCK_STREAM, 0);
     setSockReuseAddr(proxy_fd);
 
-    proxy_sk.sin_port = htons(PORT);
-    proxy_sk.sin_addr.s_addr = inet_addr(IP_ADDR);
+    proxy_sk.sin_port = htons(port);
+    proxy_sk.sin_addr.s_addr = inet_addr(ip_addr);
     proxy_sk.sin_family = AF_INET;
 
     /*collega il socket a un indirizzo locale*/
@@ -121,7 +106,7 @@ void *proxy(void *param) {
     listen(proxy_fd, 1000);
 
     while (1) {
-        /*azzera la struttura*/
+        /*azzera la struttura client_sk*/
         memset(&client_sk, 0, sizeof (struct sockaddr_in));
         len = sizeof (client_sk);
         printf("Proxy: Attendo connessioni....\n");
@@ -184,7 +169,6 @@ void *requestDispatcher(void *param) {
                     writen(dispatcher2server_fd[i], req_buf, strlen(req_buf));
                     printf("RequestDispatcher[%d]: Ho inviato al server la richiesta: %s di tipo:%d\n", i, req_buf, req->prefetch);
                     s = recvn(dispatcher2server_fd[i], resp_buf);
-                    /*printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n", i, s, resp_buf);*/
                     printf("RequestDispatcher[%d]: Ho ricevuto  risposta:%d\n", i, s);
 
                     if (s != -1) {
@@ -196,12 +180,11 @@ void *requestDispatcher(void *param) {
                         /* Nel caso in cui la risposta sia NULL (il parser si è accorto di un errore), me la faccio reinviare dal server */
                         if (resp->retcode ==-1){
                             printf("\nRequestDispatcher[%d]: E R R O R E \n", i);
-                            continue;
+                            continue; /* in caso di risposta non  * ben formata oppure block incomplete, mi riconnetto al server e mi faccio 
+                                       rimandare la risorsa */
                         }
                         strcpy(resp->dir, req->dir);
-                        printf("RequestDispatcher[%d]: L'expire time della risposta %s è %d\n", i, resp->dir, resp->expire);
-                        /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/
-                        insertResource(serv, resp, req->prefetch);
+                        insertResource(serv, resp, req->prefetch); /* Inserisce una risorsa in cache */
                         break;
                     } else { /* la receive NON è andata a buon fine */
                         fprintf(stderr, "RequestDispatcher[%d]: Errore: %s\n", i, strerror(errno));
@@ -217,7 +200,7 @@ void *requestDispatcher(void *param) {
         if (req->prefetch == 0) {
             printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n", i);
             send(req->client_fd, resp->block, strlen(resp->block), MSG_NOSIGNAL);
-            printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i, resp->block);
+            /*printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i, resp->block);*/
             close(req->client_fd);
             printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
         }

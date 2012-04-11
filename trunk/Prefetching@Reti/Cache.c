@@ -8,8 +8,6 @@
 #include "Parser.h"
 #include "Cache.h"
 
-/*http://lia.deis.unibo.it/Courses/sola0708-auto/materiale/10.thead%20linux%20(parte%202).pdf*/
-
 struct list_head server_list = LIST_HEAD_INIT(server_list);
 pthread_mutex_t insert_mutex, get_mutex, server_mutex;
 pthread_cond_t readCond, writeCond;
@@ -18,7 +16,6 @@ void initCache() {
     pthread_mutex_init(&insert_mutex, NULL);
     pthread_mutex_init(&server_mutex, NULL);
     pthread_mutex_init(&get_mutex, NULL);
-    /*pthread_cond_init(&readCond,NULL);*/
 }
 
 server_elem *insertServer(char *name) {
@@ -76,14 +73,13 @@ response *getResource(request *r) {
             /* Trovato il server cerco se la risorsa richiesta è gia stata cachata
                (ch = sc) in tal caso la restituisco*/
             list_for_each_entry(re, &se->resources, next, resource_elem) {
-                printf("&&&&&&&&&  1:%s 2:%s\n", r->dir, re->response->dir);
                 if (!strcmp(r->dir, re->response->dir)) {
                     time_t current_time;
                     (void) time(&current_time);
 
                     /* controllo se la risorsa è scaduta: nel caso, la elimino dalla cache e ritorno NULL */
                     if (current_time - re->startTime >= re->response->expire) {
-                        printf("La risorsa %s è stata cancellata dalla chache siccome sono passati %d secondi.\n", r->dir, re->response->expire);
+                        printf("La risorsa %s è stata cancellata dalla cache siccome sono passati %d secondi.\n", r->dir, re->response->expire);
                         list_del(&re->next);
                         pthread_mutex_unlock(&insert_mutex);
                         return NULL;
@@ -123,7 +119,7 @@ int insertResource(server_elem *server, response* r, int prefetch_flag) {
             /* Rihieste di tipo REF*/
             v->prefetch = 1;
             /* metto la richiesta nella lista delle richieste se non è gia presente 
-               in chache*/
+               in cache*/
             if (getResource(v) == NULL) {
                 insertReq(v);
                 printf("Cache: Ho inserito la richiesta REF: %s\n", stringRequest(v));
@@ -144,7 +140,7 @@ int insertResource(server_elem *server, response* r, int prefetch_flag) {
                 /* Rihieste di tipo IDX+REF*/
                 v->prefetch = 2;
                 /* metto la richiesta nella lista delle richieste se non è gia presente 
-                   in chache*/
+                   in cache*/
                 if (getResource(v) == NULL) {
                     insertReq(v);
                     printf("Cache: Ho inserito la richiesta IDX: %s\n", stringRequest(v));
