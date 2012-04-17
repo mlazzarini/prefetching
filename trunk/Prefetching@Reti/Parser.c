@@ -168,7 +168,6 @@ void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXN
                 idxRefs[k][i] = s[i];
                 i++;
             }
-            printf("fottiti\n");
             k++;
             s = &s[i];
             i = 0;
