@@ -45,17 +45,8 @@ int insertReq(request *req) {
 }
 
 request *popReq() {
-    request_elem *elem;
     request *ret;
     
-    printf("Adesso tu brutto stronzo stampi la lista delle richieste:\n");
-
-    list_for_each_entry(elem, &request_list, next, request_elem) {
-        printf("+++++ -> %d %s", elem->req->prefetch, stringRequest(elem->req));
-    }
-    printf("n_req %d\n", n_req);
-
-
     pthread_mutex_lock(&req_mutex);
     if (n_req == 0) {
         pthread_cond_wait(&empty_cond, &req_mutex);

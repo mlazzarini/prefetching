@@ -1,4 +1,4 @@
-GCCFLAGS= -Wall -Wunused -ansi -pedantic -ggdb
+GCCFLAGS= -Wall -Wno-unused-function -ansi -pedantic -ggdb
 LINKERFLAGS=-lpthread -lm
 
 all: Server1.exe Server2.exe Client1.exe Client2.exe Proxy.exe
