@@ -168,7 +168,7 @@ void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXN
                 idxRefs[k][i] = s[i];
                 i++;
             }
-            /*printf("--IDX+REF:%s\n", refs[k]);*/
+            printf("fottiti\n");
             k++;
             s = &s[i];
             i = 0;
@@ -192,8 +192,6 @@ response *parseResponse(char *resp_buf) {
     char exp[5];
     char *s, *data;
     int i = 0;
-
-    printf("parseResponse buf: %s\n", resp_buf);
 
     for (i = 0; i < 3; i++) {
         num[i] = resp_buf[i];
