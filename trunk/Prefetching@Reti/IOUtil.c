@@ -9,6 +9,10 @@
 #include <string.h>
 #include "Consts.h"
 
+/*
+ * Setta l'opzione timeout del fd del socket passato come argomento a 
+ * INACTIVITY_TIMEOUT_SECONDS
+ */
 int setSockTimeout(int fd) {
     struct timeval timeout;
     int ret;
@@ -31,7 +35,7 @@ int setSockReuseAddr(int fd) {
     return 1;
 }
 
-int recvn(int fd, char *buf) {
+int readn(int fd, char *buf) {
     int ret, nleft;
     setSockTimeout(fd);
     nleft = MAXLENRESP;
@@ -60,7 +64,7 @@ int writen(int fd, void *buf, int len) {
     setSockTimeout(fd);
     do {
         if ((ret = write(fd, buf, len)) == -1) {
-            fprintf(stderr, "sendn errore: %s\n", strerror(errno));
+            fprintf(stderr, "writen errore: %s\n", strerror(errno));
         };
     } while (ret < 0);
 
