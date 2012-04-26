@@ -169,17 +169,10 @@ void *requestDispatcher(void *param) {
         char resp_buf[MAXLENRESP];
         response *resp;
         /* Estraggo una richiesta dalla testa della lista delle richieste */
-/*
-        if (i==4) printf("RequestDispatcher[%d]: Prima della Pop\n", i);
-*/
         request *req = popReq();
-        printf("RequestDispatcher[%d]: chiedo %p\n", i,req);
         
         /*Cerca una risorsa nella lista delle risorse del server specificato*/
         resp = getResource(req);
-/*
-        if (i==4) printf("RequestDispatcher[%d]: dopo la get\n", i);
-*/
 
         if (resp == NULL) { /* la getResource non ha trovato la risorsa nella cache */
             /* quindi mi devo connettere al server */
@@ -202,8 +195,6 @@ void *requestDispatcher(void *param) {
                     writen(dispatcher2server_fd[i], req_buf, strlen(req_buf));
                     printf("RequestDispatcher[%d]: Ho inviato al server la richiesta di tipo:%d --> %s \n", i,req->prefetch, req_buf);
                     s = readn(dispatcher2server_fd[i], resp_buf);
-                    /*printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n", i, s, resp_buf);*/
-                    /*printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n", i, s, resp_buf);*/
                     printf("RequestDispatcher[%d]: Ho ricevuto  risposta:%d\n", i, s);
 
                     if (s != -1) {
@@ -219,7 +210,6 @@ void *requestDispatcher(void *param) {
                         }
                         strcpy(resp->dir, req->dir);
                         printf("RequestDispatcher[%d]: L'expire time della risposta %s è %d\n", i, resp->dir, resp->expire);
-                        /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/
                         insertResource(serv, resp, req->prefetch);
                         break;
                     } else { /* la receive NON è andata a buon fine */
@@ -274,12 +264,10 @@ void handleSegFault(int n) {
     printf("__________________________________\n");
     for(i = 0; i<MAXNUMTHREADWORKING ; i++) {
         if(thread_name[i] == p) {
-            printf("Ciao sono il thread %d e ho fatto un casino\n",i);
+            printf("RequestDispatcher[%d]: SEGMENTATION FAULT Corbezzoli\n",i);
             break;
         }
     }
     printf("__________________________________\n");
     fflush(stdout);
-    handleSigTerm(1);
-    
 }

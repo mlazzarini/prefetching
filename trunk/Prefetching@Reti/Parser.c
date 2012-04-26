@@ -235,8 +235,6 @@ response *parseResponse(char *resp_buf) {
 
             if (strlen(data) != atoi(len)) {
                 fprintf(stderr, "Block incomplete\n");
-                ret->retcode = -1;
-                break;
             }
 
             strcpy(ret->block, resp_buf);
