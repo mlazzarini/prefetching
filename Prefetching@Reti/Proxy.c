@@ -270,8 +270,8 @@ void handleSigTerm(int n) {
 void handleSegFault(int n) {
     int i; 
     pthread_t p = pthread_self();
-    printf("__________________________________\n");
     fflush(stdout);
+    printf("__________________________________\n");
     for(i = 0; i<MAXNUMTHREADWORKING ; i++) {
         if(thread_name[i] == p) {
             printf("Ciao sono il thread %d e ho fatto un casino\n",i);
@@ -280,5 +280,6 @@ void handleSegFault(int n) {
     }
     printf("__________________________________\n");
     fflush(stdout);
+    handleSigTerm(1);
     
 }
