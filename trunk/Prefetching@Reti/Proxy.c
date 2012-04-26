@@ -113,8 +113,8 @@ void *proxy(void *param) {
     proxy_fd = socket(AF_INET, SOCK_STREAM, 0);
     setSockReuseAddr(proxy_fd);
 
-    proxy_sk.sin_port = htons(PORT);
-    proxy_sk.sin_addr.s_addr = inet_addr(IP_ADDR);
+    proxy_sk.sin_port = htons(port);
+    proxy_sk.sin_addr.s_addr = inet_addr(ip_addr);
     proxy_sk.sin_family = AF_INET;
 
     /*collega il socket a un indirizzo locale*/
@@ -169,10 +169,17 @@ void *requestDispatcher(void *param) {
         char resp_buf[MAXLENRESP];
         response *resp;
         /* Estraggo una richiesta dalla testa della lista delle richieste */
+/*
+        if (i==4) printf("RequestDispatcher[%d]: Prima della Pop\n", i);
+*/
         request *req = popReq();
+        printf("RequestDispatcher[%d]: chiedo %p\n", i,req);
         
         /*Cerca una risorsa nella lista delle risorse del server specificato*/
         resp = getResource(req);
+/*
+        if (i==4) printf("RequestDispatcher[%d]: dopo la get\n", i);
+*/
 
         if (resp == NULL) { /* la getResource non ha trovato la risorsa nella cache */
             /* quindi mi devo connettere al server */
@@ -249,7 +256,7 @@ void handleSigTerm(int n) {
         close(dispatcher2server_fd[i]);
         pthread_kill(dispatchers_t[i], SIGABRT);
     }
-    pthread_mutex_destroy(&req_mutex);
+    pthread_mutex_destroy(&full_mutex);
     pthread_cond_destroy(&empty_cond);
     pthread_cond_destroy(&full_cond);
     pthread_exit(NULL);
