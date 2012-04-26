@@ -23,7 +23,7 @@ pthread_cond_t full_cond;
 int n_req;
 /***********/
 
-pthread_mutex_t req_mutex;
+pthread_mutex_t full_mutex,empty_mutex;
 
 typedef struct request_s {
     int  client_fd;

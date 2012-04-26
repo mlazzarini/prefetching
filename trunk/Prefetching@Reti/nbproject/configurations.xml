@@ -38,6 +38,7 @@
       <itemPath>Proxy.c</itemPath>
       <itemPath>Request.c</itemPath>
       <itemPath>Server.c</itemPath>
+      <itemPath>TODO</itemPath>
       <itemPath>Util.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -50,7 +51,6 @@
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
-      <itemPath>TODO</itemPath>
     </logicalFolder>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
