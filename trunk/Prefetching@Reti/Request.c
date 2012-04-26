@@ -40,15 +40,6 @@ int insertReq(request *req) {
 
 request *popReq() {
     request *ret;
-    request_elem *elem;
-    
-    printf("Adesso tu brutto stronzo stampi la lista delle richieste\n");
-    list_for_each_entry(elem, &request_list, next, request_elem) {
-        printf("+++++ -> %d %s",elem->req->prefetch,stringRequest(elem->req));
-    }
-    printf("n_req %d\n",n_req);
-    printf("Boia dè\n");
-    
     
     pthread_mutex_lock(&empty_mutex);
     if (n_req == 0) {
@@ -59,7 +50,6 @@ request *popReq() {
         request_elem *element = container_of(list_next(&request_list), request_elem, next);
         list_del(list_next(&request_list));
         ret = element->req;
-        if(ret == NULL ) printf("&&&&&&&&&&&&& RET NULL &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         free(element);
         n_req--;
         pthread_cond_signal(&full_cond);
