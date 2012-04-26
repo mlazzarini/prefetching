@@ -202,6 +202,8 @@ response *parseResponse(char *resp_buf) {
     ret->retcode = atoi(num);
     switch (ret->retcode) {
         case 200:
+            /* Parso la Len */
+            
             i = 0;
             s = matchSubstr(resp_buf, "Len ");
             if (s == NULL) { /* la funzione matchSubstr non ha trovato "Len" nella risposta */
@@ -217,27 +219,8 @@ response *parseResponse(char *resp_buf) {
                 i++;
 
             }
-
-            i = 0;
-            s = matchSubstr(resp_buf, "\n\n");
-            if (s == NULL) { /* la funzione matchSubstr non ha trovato "\n\n" nella risposta */
-                ret->retcode = -1;
-                break;
-            }
-            while (i != atoi(len)) {
-                if (s[i] == '\0') {
-                    ret->retcode = -1;
-                    break;
-                }
-                data[i] = s[i];
-                i++;
-            }
-
-            if (strlen(data) != atoi(len)) {
-                fprintf(stderr, "Block incomplete\n");
-            }
-
-            strcpy(ret->block, resp_buf);
+            
+            /* Parso l'expire time */
 
             i = 0;
             s = matchSubstr(resp_buf, "Expire ");
@@ -255,6 +238,25 @@ response *parseResponse(char *resp_buf) {
             }
 
             ret->expire = atoi(exp);
+            
+            /* Parso il blocco dati... qualunque sia la sua dimensione lo invio cmq al client che 
+               reagirà di conseguenza.*/
+            
+            i = 0;
+            s = matchSubstr(resp_buf, "\n\n");
+            if (s == NULL) { /* la funzione matchSubstr non ha trovato "\n\n" nella risposta */
+                ret->retcode = -1;
+                break;
+            }
+            while (i != atoi(len)) {
+                if (s[i] == '\0') {
+                    break;
+                }
+                data[i] = s[i];
+                i++;
+            }
+
+            strcpy(ret->block, resp_buf);
 
             break;
 
