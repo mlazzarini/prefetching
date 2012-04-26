@@ -6,15 +6,8 @@
 struct list_head request_list = LIST_HEAD_INIT(request_list);
 
 void initReq() {
-
-    /***********/
-    /*pthread_mutex_init(&empty_mutex, NULL);*/
     pthread_cond_init(&empty_cond, NULL);
-
-    /*pthread_mutex_init(&full_mutex, NULL);*/
     pthread_cond_init(&full_cond, NULL);
-    /***************/
-
     pthread_mutex_init(&req_mutex, NULL);
     n_req = 0;
 }

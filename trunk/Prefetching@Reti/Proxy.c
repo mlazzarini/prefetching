@@ -53,8 +53,6 @@ int dispatcher2server_fd[MAXNUMTHREADWORKING];
 /*Array di sockaddr_in del server sui quali vengono inoltrate le richieste dai dispatcher*/
 struct sockaddr_in server_sk[MAXNUMTHREADWORKING];
 
-BOOL in_esecuzione = 1;
-
 /*TODO da mettere ip come argv[1]*/
 int main(int argc, char* argv[]) {
     int i;
@@ -113,8 +111,8 @@ void *proxy(void *param) {
     proxy_fd = socket(AF_INET, SOCK_STREAM, 0);
     setSockReuseAddr(proxy_fd);
 
-    proxy_sk.sin_port = htons(port);
-    proxy_sk.sin_addr.s_addr = inet_addr(ip_addr);
+    proxy_sk.sin_port = htons(PORT);
+    proxy_sk.sin_addr.s_addr = inet_addr(IP_ADDR);
     proxy_sk.sin_family = AF_INET;
 
     /*collega il socket a un indirizzo locale*/
@@ -123,10 +121,8 @@ void *proxy(void *param) {
     /*Fa passare il socket dallo stato CLOSED allo stato LISTEN*/
     listen(proxy_fd, 1000);
     
-    int iasjfvaksucv = 0;
-
-    while (in_esecuzione) {
-        /*azzera la struttura client_sk*/
+    while (1) {
+        /*azzera la struttura*/
         memset(&client_sk, 0, sizeof (struct sockaddr_in));
         len = sizeof (client_sk);
         
@@ -146,23 +142,6 @@ void *proxy(void *param) {
             } else {
                 printf("Proxy: Ricevo %d byte dal client...\n", ricevuti);
                 
-                iasjfvaksucv ++;
-
-                /* Controllo che non si tratti di una richiesta fittizia, in tal caso
-                 esco direttamente*/
-                if (!strcmp(req_buf, "close")) {
-                    request *bad_req = malloc(sizeof (request));
-                    memset(bad_req,'\0',sizeof(bad_req));
-                    strcpy(bad_req->dir, "close");
-                    insertReq(bad_req);
-                    break;
-                }
-                
-                if (iasjfvaksucv == 6) {
-                    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++spacca\n");
-                    handleSigTerm(0);
-                }
-
                 /* parso la richiesta arrivata dal client*/
                 parseRequest(req_buf, req);
                 req->client_fd = client_fd;
@@ -181,7 +160,7 @@ void *proxy(void *param) {
 void *requestDispatcher(void *param) {
     /* Indice del thread utile per accedere alle sue strutture dati*/
     int i = *((int*) param);
-    while (in_esecuzione || n_req) {
+    while (1) {
         int s;
         char *req_buf;
         char resp_buf[MAXLENRESP];
@@ -217,7 +196,9 @@ void *requestDispatcher(void *param) {
                     printf("RequestDispatcher[%d]: Sono connesso al server\n", i);
                     writen(dispatcher2server_fd[i], req_buf, strlen(req_buf));
                     printf("RequestDispatcher[%d]: Ho inviato al server la richiesta di tipo:%d --> %s \n", i,req->prefetch, req_buf);
-                    s = recvn(dispatcher2server_fd[i], resp_buf);
+                    s = readn(dispatcher2server_fd[i], resp_buf);
+                    /*printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n", i, s, resp_buf);*/
+                    /*printf("RequestDispatcher[%d]: Ho ricevuto come risposta:%d ↓↓↓↓↓ \n---------------\n%s\n--------------\n", i, s, resp_buf);*/
                     printf("RequestDispatcher[%d]: Ho ricevuto  risposta:%d\n", i, s);
 
                     if (s != -1) {
@@ -229,11 +210,12 @@ void *requestDispatcher(void *param) {
                         /* Nel caso in cui la risposta sia NULL (il parser si è accorto di un errore), me la faccio reinviare dal server */
                         if (resp->retcode == -1) {
                             printf("\nRequestDispatcher[%d]: E R R O R E \n", i);
-                            continue; /* in caso di risposta non  * ben formata oppure block incomplete, mi riconnetto al server e mi faccio 
-                                       rimandare la risorsa */
+                            continue;
                         }
                         strcpy(resp->dir, req->dir);
-                        insertResource(serv, resp, req->prefetch); /* Inserisce una risorsa in cache */
+                        printf("RequestDispatcher[%d]: L'expire time della risposta %s è %d\n", i, resp->dir, resp->expire);
+                        /*printf("\t\t°°°resp->block: %s\tresp->expire:%d\n",resp->block,resp->expire);*/
+                        insertResource(serv, resp, req->prefetch);
                         break;
                     } else { /* la receive NON è andata a buon fine */
                         fprintf(stderr, "RequestDispatcher[%d]: Errore: %s\n", i, strerror(errno));
@@ -249,7 +231,7 @@ void *requestDispatcher(void *param) {
         if (req->prefetch == 0) {
             printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n", i);
             send(req->client_fd, resp->block, strlen(resp->block), MSG_NOSIGNAL);
-            /*printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i, resp->block);*/
+            printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n> > > > > > GLI MANDO STA ROBA QUA:< < < < \n%s\n", i, resp->block);
             close(req->client_fd);
             printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
         }
@@ -262,37 +244,6 @@ void *requestDispatcher(void *param) {
  * Termina tutti i thread in esecuzione e chiude tutte le connessioni attive
  */
 void handleSigTerm(int n) {
-    int bad_proxy_fd;
-    printf("\nChiudo il proxy:\n");
-    printf(" -Smetto di ricevere connessioni...\n");
-    printf(" -Aspetto di svuotare la lista delle richieste...:\n");
-
-    /* Invio una connessione fittizia al server per chiudere far si che riesegua 
-     * il while e si accorga che è terminato */
-    bad_proxy_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (connect(bad_proxy_fd, (struct sockaddr*) &proxy_sk, sizeof (proxy_sk)) == -1) {
-        printf("Non riesco a inviare la richiesta fittizia al Proxy: %s\n", strerror(errno));
-    } else {
-        int i;
-        in_esecuzione = 0;
-        printf("Ho inviato la richiesta del cazzo al Proxy e quindi mi aspetto che esca per diana!\n");
-        writen(bad_proxy_fd, "close", 5);
-        for(i = 0; i < MAXNUMTHREADWORKING; i++) {
-            request *bad_req = malloc(sizeof (request));
-            memset(bad_req,'\0',sizeof(bad_req));
-            strcpy(bad_req->dir, "close");
-            insertReq(bad_req);
-            break;
-        }
-    }
-}
-
-void handleSegFault(int n) {
-    exitProxy();
-    fflush(stdout);
-}
-
-void exitProxy() {
     int i;
     printf("\nElimino tutti i thread e chiudo il Proxy...\n");
     fflush(stdout);
@@ -307,5 +258,11 @@ void exitProxy() {
     close(proxy_fd);
     close(client_fd);
     pthread_kill(server_t, SIGABRT);
+    fflush(stdout);
+    exit(0);
+}
+
+void handleSegFault(int n) {
+    printf("è.é\n");
     fflush(stdout);
 }

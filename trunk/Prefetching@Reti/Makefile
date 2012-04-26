@@ -28,8 +28,8 @@ Server2.exe: Server2.o Util.o
 Server2.o: Server.c Util.h 
 	gcc -c ${GCCFLAGS} -DSOLORANGE -o Server2.o Server.c
 
-Proxy.exe: Proxy.o Util.o Parser.o Request.o Dbg.o IOUtil.o Cache.o
-	gcc -o Proxy.exe ${GCCFLAGS} ${LINKERFLAGS} Proxy.o Util.o Parser.o Request.o IOUtil.o Dbg.o Cache.o
+Proxy.exe: Proxy.o Util.o Parser.o Request.o IOUtil.o Cache.o
+	gcc -o Proxy.exe ${GCCFLAGS} ${LINKERFLAGS} Proxy.o Util.o Parser.o Request.o IOUtil.o Cache.o
 
 Proxy.o: Proxy.c Util.h Request.h
 	gcc -c ${GCCFLAGS} Proxy.c
@@ -48,9 +48,6 @@ IOUtil.o: IOUtil.c IOUtil.h
 	
 Cache.o: Cache.c Cache.h
 	gcc -c ${GCCFLAGS} Cache.c
-
-Dbg.o: Dbg.c Dbg.h
-	gcc -c ${GCCFLAGS} Dbg.c
 	
 
 clean:	
