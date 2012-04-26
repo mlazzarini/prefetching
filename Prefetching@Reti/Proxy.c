@@ -53,6 +53,8 @@ int dispatcher2server_fd[MAXNUMTHREADWORKING];
 /*Array di sockaddr_in del server sui quali vengono inoltrate le richieste dai dispatcher*/
 struct sockaddr_in server_sk[MAXNUMTHREADWORKING];
 
+pthread_t thread_name[MAXNUMTHREADWORKING];
+
 /*TODO da mettere ip come argv[1]*/
 int main(int argc, char* argv[]) {
     int i;
@@ -160,6 +162,7 @@ void *proxy(void *param) {
 void *requestDispatcher(void *param) {
     /* Indice del thread utile per accedere alle sue strutture dati*/
     int i = *((int*) param);
+    thread_name[i] = pthread_self();
     while (1) {
         int s;
         char *req_buf;
@@ -168,11 +171,6 @@ void *requestDispatcher(void *param) {
         /* Estraggo una richiesta dalla testa della lista delle richieste */
         request *req = popReq();
         
-        printf("/////////////////////////////%s\n",req->dir);
-        if (!strcmp(req->dir, "close")) {
-            break;
-        }
-
         /*Cerca una risorsa nella lista delle risorse del server specificato*/
         resp = getResource(req);
 
@@ -263,6 +261,17 @@ void handleSigTerm(int n) {
 }
 
 void handleSegFault(int n) {
-    printf("è.é\n");
+    int i; 
+    pthread_t p = pthread_self();
+    printf("__________________________________\n");
     fflush(stdout);
+    for(i = 0; i<MAXNUMTHREADWORKING ; i++) {
+        if(thread_name[i] == p) {
+            printf("Ciao sono il thread %d e ho fatto un casino\n",i);
+            break;
+        }
+    }
+    printf("__________________________________\n");
+    fflush(stdout);
+    
 }
