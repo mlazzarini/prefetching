@@ -6,7 +6,6 @@
                    projectFiles="true">
       <itemPath>Cache.h</itemPath>
       <itemPath>Consts.h</itemPath>
-      <itemPath>Dbg.h</itemPath>
       <itemPath>IOUtil.h</itemPath>
       <itemPath>Parser.h</itemPath>
       <itemPath>Request.h</itemPath>
@@ -34,13 +33,11 @@
                    projectFiles="true">
       <itemPath>Cache.c</itemPath>
       <itemPath>Client.c</itemPath>
-      <itemPath>Dbg.c</itemPath>
       <itemPath>IOUtil.c</itemPath>
       <itemPath>Parser.c</itemPath>
       <itemPath>Proxy.c</itemPath>
       <itemPath>Request.c</itemPath>
       <itemPath>Server.c</itemPath>
-      <itemPath>TODO</itemPath>
       <itemPath>Util.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -53,6 +50,7 @@
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
+      <itemPath>TODO</itemPath>
     </logicalFolder>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>

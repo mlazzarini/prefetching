@@ -40,7 +40,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/Cache.o \
 	${OBJECTDIR}/Client.o \
 	${OBJECTDIR}/Request.o \
-	${OBJECTDIR}/Dbg.o \
 	${OBJECTDIR}/Util.o \
 	${OBJECTDIR}/Parser.o
 
@@ -98,11 +97,6 @@ ${OBJECTDIR}/Request.o: Request.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/Request.o Request.c
-
-${OBJECTDIR}/Dbg.o: Dbg.c 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} $@.d
-	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/Dbg.o Dbg.c
 
 ${OBJECTDIR}/Util.o: Util.c 
 	${MKDIR} -p ${OBJECTDIR}
