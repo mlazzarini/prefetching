@@ -5,36 +5,8 @@
 #include "Consts.h"
 #include "Parser.h"
 
-char *getIp(char* req) {
-    char* res = strstr(req, "//");
-    char* ip = malloc(MAX_IP_LENGHT);
-    int i = 2;
 
-    while (res[i] != ':') {
-        ip[i - 2] = res[i];
-        i++;
-    }
-    ip[i - 2] = '\0';
-    return ip;
-}
 
-int getPort(char* req) {
-    int i = 1;
-    char* port;
-    char* res = strstr(req, "//");
-    res = strstr(res, ":");
-    port = malloc(MAX_PORT_LENGHT);
-
-    while (res[i] != '/') {
-        port[i - 1] = res[i];
-        i++;
-    }
-    port[i - 1] = '\0';
-    return atoi(port);
-}
-
-/* prende in input una stringa (la req) e la parsa riempiendo i campi della struttura request r
- * passata per riferimento come parametro della funzione*/
 BOOL parseRequest(char *req, request *r) {
     int lenreq = strlen(req);
     int res = 0;
@@ -71,13 +43,14 @@ BOOL parseRequest(char *req, request *r) {
     return TRUE;
 }
 
+
 char *stringRequest(request *r) {
     char* str_req = malloc(sizeof (char) *MAXLENREQ);
     sprintf(str_req, "%s %s%s:%d%s\n\n", r->type, r->protocol, r->ip, r->port, r->dir);
     return str_req;
 }
 
-/*Date due stringhe, ritorna 1 se la sottostringa compare nella stringa, 0 altrimenti */
+
 int matchSubstrBool(char *str, char *sub) {
     int i, k;
     i = 0;
@@ -99,8 +72,7 @@ int matchSubstrBool(char *str, char *sub) {
     return 0;
 }
 
-/* Date due stringhe, ritorna un puntatore alla fine della sottostringa nella 
- * stringa (la prima occorrenza di sub che trova) */
+
 char *matchSubstr(char *str, char *sub) {
     int i, k;
     if (matchSubstrBool(str, sub) == 1) {
@@ -126,11 +98,7 @@ char *matchSubstr(char *str, char *sub) {
     return NULL;
 }
 
-/* Parsing del blocco ricevuto, alla ricerca di eventuali REF o IDX+REF:
- * vengono salvati nei vettori passati in input
- * Nel caso il parametro idxRef passato sia NULL, vengono cercati solo i REF 
- * contenuti nel blocco
- */
+
 void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXNUMREF + 1][MAXLENPATH]) {
     int i = 0;
     int k = 0;
@@ -180,9 +148,7 @@ void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXN
     }
 }
 
-/* Parsing della risposta: estrae da una risposta l'expire e il blocco, dopo aver
- * verificato che il blocco sia lungo LEN bytes. In caso di errore (risposta non 
- * ben formata oppure block incomplete) la funzione ritorna una response con retcode = -1,*/
+
 response *parseResponse(char *resp_buf) {
 
     response *ret = malloc(sizeof (response));

@@ -22,11 +22,13 @@
       <itemPath>3.mhtml</itemPath>
       <itemPath>4.mhtml</itemPath>
       <itemPath>4000.mhtml</itemPath>
+      <itemPath>AUTHORS.txt</itemPath>
       <itemPath>Bello.mhtml</itemPath>
       <itemPath>Davoli.mhtml</itemPath>
       <itemPath>Mondo.mhtml</itemPath>
       <itemPath>Reti.mhtml</itemPath>
       <itemPath>Vuoto.mhtml</itemPath>
+      <itemPath>documentazione@Reti.odt</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"

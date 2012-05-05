@@ -162,5 +162,3 @@ int insertResource(server_elem *server, response* r, int prefetch_flag) {
     pthread_mutex_unlock(&insert_mutex);
     return -1;
 }
-
-/*gestione figa*/
