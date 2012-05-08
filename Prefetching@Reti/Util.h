@@ -13,18 +13,18 @@
 #include <errno.h>
 
 
-extern int	SetsockoptReuseAddr(int s);
-extern int	SetsockoptSndBuf(int s, int numbytes);
-extern int	SetsockoptRcvBuf(int s, int numbytes);
-extern int	TCP_setup_connection(int *pserverfd, char *string_IP_remote_address, int port_number_remote);
-extern int	TCP_setup_socket_listening(int *plistenfd, int numero_porta_locale);
-extern ssize_t  Writen (int fd, const void *buf, size_t n);
-extern int	Readn(int fd, char *ptr, int nbytes);
-extern int	Sendn (int fd, const void *buf, size_t n);
+extern int SetsockoptReuseAddr(int s);
+extern int SetsockoptSndBuf(int s, int numbytes);
+extern int SetsockoptRcvBuf(int s, int numbytes);
+extern int TCP_setup_connection(int *pserverfd, char *string_IP_remote_address, int port_number_remote);
+extern int TCP_setup_socket_listening(int *plistenfd, int numero_porta_locale);
+extern ssize_t Writen(int fd, const void *buf, size_t n);
+extern int Readn(int fd, char *ptr, int nbytes);
+extern int Sendn(int fd, const void *buf, size_t n);
 extern void init_random(int seed);
 extern float genera_0_1(void);
-extern struct timeval differenza(struct timeval dopo,struct timeval prima);
-extern double sec_differenza(struct timeval dopo,struct timeval prima);
+extern struct timeval differenza(struct timeval dopo, struct timeval prima);
+extern double sec_differenza(struct timeval dopo, struct timeval prima);
 extern int attesa(int msec);
 
 #define CLEARSCREEN "\033[2J\033[0;0f"

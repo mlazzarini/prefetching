@@ -5,8 +5,6 @@
 #include "Consts.h"
 #include "Parser.h"
 
-
-
 BOOL parseRequest(char *req, request *r) {
     int lenreq = strlen(req);
     int res = 0;
@@ -23,6 +21,8 @@ BOOL parseRequest(char *req, request *r) {
 
     sprintf(format, "%%9s %%19[^0-9]%%d.%%d.%%d.%%d:%%d%%%d[^\n]", MAXLENPATH);
 
+    /* se ha trovato piu o meno di 8 elementi ritorna FALSE in quanto la richiesta
+     * non è ben formata */
     if ((res = sscanf(reqComp, format,
             r->type,
             r->protocol,
@@ -31,25 +31,24 @@ BOOL parseRequest(char *req, request *r) {
             &(ip[2]),
             &(ip[3]),
             &(r->port),
-            &r->dir)) != 8) { /* se ha trovato piu o meno di 5 elementi ritorna FALSE in quanto la richiesta non è ben formata */
+            &r->dir)) != 8) {
         return FALSE;
     }
 
     sprintf(r->ip, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 
+    /* Se manca \n\n allora la richista non è ben formata*/
     if (reqComp[lenreq - 1] != '\n' || reqComp[lenreq - 2] != '\n')
         return FALSE;
 
     return TRUE;
 }
 
-
 char *stringRequest(request *r) {
     char* str_req = malloc(sizeof (char) *MAXLENREQ);
     sprintf(str_req, "%s %s%s:%d%s\n\n", r->type, r->protocol, r->ip, r->port, r->dir);
     return str_req;
 }
-
 
 int matchSubstrBool(char *str, char *sub) {
     int i, k;
@@ -71,7 +70,6 @@ int matchSubstrBool(char *str, char *sub) {
     }
     return 0;
 }
-
 
 char *matchSubstr(char *str, char *sub) {
     int i, k;
@@ -97,7 +95,6 @@ char *matchSubstr(char *str, char *sub) {
     }
     return NULL;
 }
-
 
 void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXNUMREF + 1][MAXLENPATH]) {
     int i = 0;
@@ -148,7 +145,6 @@ void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXN
     }
 }
 
-
 response *parseResponse(char *resp_buf) {
 
     response *ret = malloc(sizeof (response));
@@ -169,7 +165,7 @@ response *parseResponse(char *resp_buf) {
     switch (ret->retcode) {
         case 200:
             /* Parso la Len */
-            
+
             i = 0;
             s = matchSubstr(resp_buf, "Len ");
             if (s == NULL) { /* la funzione matchSubstr non ha trovato "Len" nella risposta */
@@ -185,7 +181,7 @@ response *parseResponse(char *resp_buf) {
                 i++;
 
             }
-            
+
             /* Parso l'expire time */
 
             i = 0;
@@ -204,10 +200,10 @@ response *parseResponse(char *resp_buf) {
             }
 
             ret->expire = atoi(exp);
-            
+
             /* Parso il blocco dati... qualunque sia la sua dimensione lo invio cmq al client che 
                reagirà di conseguenza.*/
-            
+
             i = 0;
             s = matchSubstr(resp_buf, "\n\n");
             if (s == NULL) { /* la funzione matchSubstr non ha trovato "\n\n" nella risposta */
