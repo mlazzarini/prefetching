@@ -42,14 +42,15 @@ request *popReq() {
     request *ret;
 
     request_elem *elem;
-    
-    printf("popReq: stampo la lista delle richieste\n");
-    list_for_each_entry(elem, &request_list, next, request_elem) {
-        printf(" - %s di tipo %d",stringRequest(elem->req),elem->req->prefetch);
-    }
-    printf("Totale n. richieste: %d\n",n_req);
 
-    
+    printf("popReq: stampo la lista delle richieste\n");
+
+    list_for_each_entry(elem, &request_list, next, request_elem) {
+        printf(" - %s di tipo %d", stringRequest(elem->req), elem->req->prefetch);
+    }
+    printf("Totale n. richieste: %d\n", n_req);
+
+
     pthread_mutex_lock(&empty_mutex);
     if (n_req == 0) {
         pthread_cond_wait(&empty_cond, &empty_mutex);

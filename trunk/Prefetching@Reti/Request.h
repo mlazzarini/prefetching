@@ -23,22 +23,22 @@ pthread_cond_t full_cond;
 int n_req;
 /***********/
 
-pthread_mutex_t full_mutex,empty_mutex;
+pthread_mutex_t full_mutex, empty_mutex;
 
 typedef struct request_s {
-    int  client_fd;
+    int client_fd;
     char type[10];
     char protocol[20];
     char ip[16];
-    int  port;
-   /* 0: È una richiesta che arriva da un client e quindi quando arriva la risposta 
-         va spedita al client e messa in cache 
-      1: È una richiesta REF che arriva da una dei dispatcher (prefetching) e 
-         quindi va semplicemente messa in cache senza essere rispedita al client
-      2: È una richiesta IDX+REF che arriva da uno dei dispatcher (prefetching) 
-         e quindi va messa in cache e poi parsata per trovare eventuali altre 
-         richieste REF, senza essere rispedita al client*/
-    int  prefetch; 
+    int port;
+    /* 0: È una richiesta che arriva da un client e quindi quando arriva la risposta 
+          va spedita al client e messa in cache 
+       1: È una richiesta REF che arriva da una dei dispatcher (prefetching) e 
+          quindi va semplicemente messa in cache senza essere rispedita al client
+       2: È una richiesta IDX+REF che arriva da uno dei dispatcher (prefetching) 
+          e quindi va messa in cache e poi parsata per trovare eventuali altre 
+          richieste REF, senza essere rispedita al client*/
+    int prefetch;
     char dir[MAXLENPATH];
 } request;
 

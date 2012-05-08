@@ -21,7 +21,7 @@
  * Prende in input una stringa (la req) e la parsa riempiendo i campi della struttura request r
  * passata per riferimento come parametro della funzione
  */
-BOOL parseRequest (char *req, request *r);
+BOOL parseRequest(char *req, request *r);
 
 /*
  * Trasforma una request in una stringa
@@ -45,7 +45,7 @@ char *matchSubstr(char *str, char *sub);
  * Nel caso il parametro idxRef passato sia NULL, vengono cercati solo i REF 
  * contenuti nel blocco
  */
-void parseRef(char *res, char refs[MAXNUMREF+1][MAXLENPATH], char idxRefs[MAXNUMREF+1][MAXLENPATH]);
+void parseRef(char *res, char refs[MAXNUMREF + 1][MAXLENPATH], char idxRefs[MAXNUMREF + 1][MAXLENPATH]);
 
 /* 
  * Parsing della risposta: estrae da una risposta l'expire e il blocco, dopo aver

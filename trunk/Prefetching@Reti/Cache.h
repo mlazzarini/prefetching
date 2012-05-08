@@ -12,6 +12,8 @@
 #include "Consts.h"
 #include "list.h"
 
+/* Struttura per risposta, contiene le informazione necessarie a soddisfare una 
+ * risposta di un client*/
 typedef struct resp_s {
     int retcode;
     int expire;
@@ -20,12 +22,15 @@ typedef struct resp_s {
     char block[MAXLENRESP];
 } response;
 
+/* Contiene una stringa che identifica un server e le risorse ad esso associate*/
 typedef struct server_s {
     struct list_head next;
     struct list_head resources;
     char name[MAXLENPATH];
 } server_elem;
 
+
+/* Risorsa della cache*/
 typedef struct resource_s {
     struct list_head next;
     time_t startTime;

@@ -50,11 +50,6 @@ server_elem *insertServer(char *name) {
     return NULL;
 }
 
-/*
- * Cerca una risorsa nella lista delle risorse del server specificato, se la 
- * trova la restituisce altrimenti restituisce NULL. NULL può anche esssere
- * restituito nel caso in cui il tempo della risorsa sia scaduto
- */
 response *getResource(request *r) {
     char *s = getServer(r);
     server_elem *se;
@@ -152,6 +147,7 @@ int insertResource(server_elem *server, response* r, int prefetch_flag) {
 
     pthread_mutex_lock(&insert_mutex);
 
+    /* Metto la risorsa nella lista delle risorse disponibili*/
     if ((e = malloc(sizeof (resource_elem))) != (resource_elem *) - 1) {
         e->response = r;
         list_add_tail(&e->next, &server->resources);

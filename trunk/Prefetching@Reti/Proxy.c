@@ -24,7 +24,6 @@
 void *proxy(void *param);
 void *requestDispatcher(void* param);
 void handleSigTerm(int n);
-void handleSegFault(int n);
 void exitProxy();
 
 pthread_t server_t;
@@ -68,17 +67,13 @@ int main(int argc, char* argv[]) {
         port = PORT;
     }
 
-    /* Bindo il segnale che mi uccide tutti i thread quando viene premuto ctrl+c 
+    /* Registro il segnale che mi uccide tutti i thread quando viene premuto ctrl+c 
        per evitare di lasciare connessioni aperte*/
     if (signal(SIGINT, handleSigTerm) == SIG_ERR) {
         perror("Errore gestore SIGUSR1\n");
         exit(1);
     }
 
-    if (signal(SIGSEGV, handleSegFault) == SIG_ERR) {
-        perror("Errore gestore SIGSEGV\n");
-        exit(1);
-    }
     initReq();
     initCache();
 
@@ -95,12 +90,6 @@ int main(int argc, char* argv[]) {
     /* Attendo la fine del proxy*/
     pthread_join(server_t, NULL);
     printf("pthread_join proxy\n");
-
-    /* Attendo la fine dei dispatcher (che avviene solo dopo la fine del proxy)*/
-    for (i = 0; i < MAXNUMTHREADWORKING; i++) {
-        pthread_join(dispatchers_t[i], NULL);
-        printf("pthread_join dispatcher[%d]\n", i);
-    }
 
     exit(0);
 }
@@ -120,27 +109,27 @@ void *proxy(void *param) {
 
     /*Fa passare il socket dallo stato CLOSED allo stato LISTEN*/
     listen(proxy_fd, 1000);
-    
+
     while (1) {
         /*azzera la struttura*/
         memset(&client_sk, 0, sizeof (struct sockaddr_in));
         len = sizeof (client_sk);
-        
+
         printf("Proxy: Attendo connessioni....\n");
         client_fd = accept(proxy_fd, (struct sockaddr *) &client_sk, &len);
         setSockReuseAddr(client_fd);
         if (client_fd < 0) {
             fprintf(stderr, "accept() error: %d\n", errno);
         } else { /* se la connect col client è andata a buon fine */
-            request *req = malloc(sizeof(request));
+            request *req = malloc(sizeof (request));
             char req_buf[MAXLENREQ];
-            memset(req_buf,'\0',MAXLENREQ);
+            memset(req_buf, '\0', MAXLENREQ);
 
             if (recv(client_fd, req_buf, MAXLENREQ, MSG_NOSIGNAL) == -1) {
                 fprintf(stderr, "recv() error: \n");
             } else {
                 printf("Proxy: Ricevo dal client...\n");
-                
+
                 /* parso la richiesta arrivata dal client*/
                 parseRequest(req_buf, req);
                 req->client_fd = client_fd;
@@ -152,7 +141,6 @@ void *proxy(void *param) {
             }
         }
     }
-    printf("Proxy: Termino la mia esecuzione...\n");
     return NULL;
 }
 
@@ -167,12 +155,13 @@ void *requestDispatcher(void *param) {
         response *resp;
         /* Estraggo una richiesta dalla testa della lista delle richieste */
         request *req = popReq();
-        
+
         /*Cerca la risorsa in cache*/
         resp = getResource(req);
 
-        if (resp == NULL) { /* la getResource non ha trovato la risorsa nella cache */
-            /* quindi mi devo connettere al server */
+        /* la getResource non ha trovato la risorsa nella cache
+           quindi mi devo connettere al server */
+        if (resp == NULL) {
             memset(&server_sk[i], 0, sizeof (struct sockaddr_in));
             memset(resp_buf, '\0', MAXLENRESP);
             server_sk[i].sin_addr.s_addr = inet_addr(req->ip);
@@ -189,7 +178,7 @@ void *requestDispatcher(void *param) {
                     fprintf(stderr, "RequestDispatcher[%d]: connect() error: %s\n", i, strerror(errno));
                 } else {
                     writen(dispatcher2server_fd[i], req_buf, strlen(req_buf));
-                    printf("RequestDispatcher[%d]: Ho inviato al server la richiesta di tipo:%d --> %s \n", i,req->prefetch, req_buf);
+                    printf("RequestDispatcher[%d]: Ho inviato al server la richiesta di tipo:%d --> %s \n", i, req->prefetch, req_buf);
                     s = readn(dispatcher2server_fd[i], resp_buf);
                     printf("RequestDispatcher[%d]: Ho ricevuto  risposta:%d\n", i, s);
 
@@ -221,7 +210,7 @@ void *requestDispatcher(void *param) {
         if (req->prefetch == 0) {
             printf("RequestDispatcher[%d]: la request è di tipo 0 quindi rimando al client:\n", i);
             send(req->client_fd, resp->block, strlen(resp->block), MSG_NOSIGNAL);
-            printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n",i);
+            printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n", i);
             close(req->client_fd);
             printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
         }
@@ -252,17 +241,3 @@ void handleSigTerm(int n) {
     exit(0);
 }
 
-void handleSegFault(int n) {
-    int i; 
-    pthread_t p = pthread_self();
-    fflush(stdout);
-    printf("__________________________________\n");
-    for(i = 0; i<MAXNUMTHREADWORKING ; i++) {
-        if(thread_name[i] == p) {
-            printf("RequestDispatcher[%d]: SEGMENTATION FAULT\n",i);
-            break;
-        }
-    }
-    printf("__________________________________\n");
-    fflush(stdout);
-}
