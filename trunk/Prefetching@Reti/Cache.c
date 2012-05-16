@@ -77,6 +77,8 @@ response *getResource(request *r) {
                         printf("La risorsa %s è stata cancellata dalla cache siccome sono passati %d secondi.\n", r->dir, re->response->expire);
                         list_del(&re->next);
                         pthread_mutex_unlock(&insert_mutex);
+                        free(re->response);
+                        free(re);
                         return NULL;
                     }
 

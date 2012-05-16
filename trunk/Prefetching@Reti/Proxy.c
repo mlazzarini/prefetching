@@ -110,7 +110,7 @@ void *proxy(void *param) {
     /*Fa passare il socket dallo stato CLOSED allo stato LISTEN*/
     listen(proxy_fd, 1000);
 
-    while (1) {
+    for (;;) {
         /*azzera la struttura*/
         memset(&client_sk, 0, sizeof (struct sockaddr_in));
         len = sizeof (client_sk);
@@ -148,7 +148,7 @@ void *requestDispatcher(void *param) {
     /* Indice del thread*/
     int i = *((int*) param);
     thread_name[i] = pthread_self();
-    while (1) {
+    for (;;) {
         int s;
         char *req_buf;
         char resp_buf[MAXLENRESP];
@@ -196,8 +196,9 @@ void *requestDispatcher(void *param) {
                         strcpy(resp->dir, req->dir);
                         /* Se i dati contenuti nel blocco hanno la stessa dimensione di len allora parso la risposta
                             e la inserisco in cache.. altrimenti rischio segmentation FAULT*/
-                        if(resp->complete == TRUE)
+                        if(resp->complete == TRUE) {
                             insertResource(serv, resp, req->prefetch);
+                        }
                         break;
                     } else { /* la receive NON è andata a buon fine */
                         fprintf(stderr, "RequestDispatcher[%d]: Errore: %s\n", i, strerror(errno));
@@ -216,7 +217,12 @@ void *requestDispatcher(void *param) {
             printf("RequestDispatcher[%d]: Ho inoltrato la risposta al client\n", i);
             close(req->client_fd);
             printf("RequestDispatcher[%d]: Chiudo la connessione con il client\n", i);
+            
+            if(resp->complete == FALSE) {
+                free(resp);
+            }
         }
+        free(req);
     }
     printf("RequestDispatcher[%d]: Termino la mia esecuzione...\n", i);
     return NULL;
