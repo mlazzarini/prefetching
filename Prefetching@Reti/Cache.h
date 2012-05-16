@@ -20,6 +20,8 @@ typedef struct resp_s {
     char dir[MAXLENPATH];
     /* contiene l'intera risposta,cioè tutto quello che arriva dal server (compreso Len, Expire ecc..) */
     char block[MAXLENRESP];
+    /* True se la risposta è completa ovvero la lunghezza de blocco è uguale a quella dichiarata in len*/
+    BOOL complete; 
 } response;
 
 /* Contiene una stringa che identifica un server e le risorse ad esso associate*/

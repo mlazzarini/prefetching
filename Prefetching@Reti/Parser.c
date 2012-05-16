@@ -165,7 +165,6 @@ response *parseResponse(char *resp_buf) {
     switch (ret->retcode) {
         case 200:
             /* Parso la Len */
-
             i = 0;
             s = matchSubstr(resp_buf, "Len ");
             if (s == NULL) { /* la funzione matchSubstr non ha trovato "Len" nella risposta */
@@ -179,8 +178,8 @@ response *parseResponse(char *resp_buf) {
                 }
                 len[i] = s[i];
                 i++;
-
             }
+            len[i]='\0';
 
             /* Parso l'expire time */
 
@@ -217,7 +216,12 @@ response *parseResponse(char *resp_buf) {
                 data[i] = s[i];
                 i++;
             }
-
+            
+            if (i != atoi(len))
+                ret->complete = FALSE;
+            else
+                ret->complete = TRUE;
+            printf("----------- ret->complete = %d\ti = %d\t len %d\n",ret->complete,i,atoi(len));
             strcpy(ret->block, resp_buf);
 
             break;
