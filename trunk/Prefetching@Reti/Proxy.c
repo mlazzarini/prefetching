@@ -120,7 +120,7 @@ void *proxy(void *param) {
         setSockReuseAddr(client_fd);
         if (client_fd < 0) {
             fprintf(stderr, "accept() error: %d\n", errno);
-        } else { /* se la connect col client è andata a buon fine */
+        } else { /* se la connect con il client è andata a buon fine */
             request *req = malloc(sizeof (request));
             char req_buf[MAXLENREQ];
             memset(req_buf, '\0', MAXLENREQ);
@@ -180,7 +180,7 @@ void *requestDispatcher(void *param) {
                     writen(dispatcher2server_fd[i], req_buf, strlen(req_buf));
                     printf("RequestDispatcher[%d]: Ho inviato al server la richiesta di tipo:%d --> %s \n", i, req->prefetch, req_buf);
                     s = readn(dispatcher2server_fd[i], resp_buf);
-                    printf("RequestDispatcher[%d]: Ho ricevuto  risposta:%d\n", i, s);
+                    printf("RequestDispatcher[%d]: Ho ricevuto  risposta:%d \n _______________________ %s \n________________________\n", i, s,resp_buf);
 
                     if (s != -1) {
                         /* se la receive è andata a buon fine, inserisco in cache quello che ho ricevuto */
@@ -190,11 +190,14 @@ void *requestDispatcher(void *param) {
                         resp = parseResponse(resp_buf);
                         /* Nel caso in cui la risposta sia NULL (il parser si è accorto di un errore), me la faccio reinviare dal server */
                         if (resp->retcode == -1) {
-                            printf("\nRequestDispatcher[%d]: E R R O R E \n", i);
+                            printf("RequestDispatcher[%d]: E R R O R E \n", i);
                             continue;
                         }
                         strcpy(resp->dir, req->dir);
-                        insertResource(serv, resp, req->prefetch);
+                        /* Se i dati contenuti nel blocco hanno la stessa dimensione di len allora parso la risposta
+                            e la inserisco in cache.. altrimenti rischio segmentation FAULT*/
+                        if(resp->complete == TRUE)
+                            insertResource(serv, resp, req->prefetch);
                         break;
                     } else { /* la receive NON è andata a buon fine */
                         fprintf(stderr, "RequestDispatcher[%d]: Errore: %s\n", i, strerror(errno));
